@@ -14,7 +14,8 @@ async function req<T>(path: string, token: string): Promise<T> {
 }
 
 export function fetchFile(fileKey: string, token: string): Promise<FigmaFileResponse> {
-  return req<FigmaFileResponse>(`/files/${fileKey}?depth=2`, token);
+  // Request geometry to reliably receive bounding box info for frames.
+  return req<FigmaFileResponse>(`/files/${fileKey}?depth=2&geometry=paths`, token);
 }
 
 export function fetchImages(

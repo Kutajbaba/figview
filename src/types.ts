@@ -3,6 +3,13 @@ export interface FigmaNode {
   name: string;
   type: string;
   children?: FigmaNode[];
+  // Provided by the Figma file API for nodes; used to classify mobile vs desktop.
+  absoluteBoundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface FigmaPage {
@@ -34,6 +41,7 @@ export interface ScreenFrame {
   pageName: string;
   thumbnailUrl?: string;
   protoUrl: string;
+  kind: 'mobile' | 'desktop';
 }
 
 export interface FigmaConfig {

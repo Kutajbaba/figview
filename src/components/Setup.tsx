@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { parseFigmaUrl } from '../lib/figma';
 import type { FigmaConfig } from '../types';
 
@@ -11,14 +11,12 @@ interface Props {
 const TOKEN_KEY = 'figview:token';
 
 export function Setup({ onLoad, loading, error }: Props) {
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(() => {
+    const saved = localStorage.getItem(TOKEN_KEY);
+    return saved ?? '';
+  });
   const [url, setUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-
-  useEffect(() => {
-    const saved = localStorage.getItem(TOKEN_KEY);
-    if (saved) setToken(saved);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

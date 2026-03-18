@@ -2,6 +2,18 @@ import { useState, useCallback } from 'react';
 import { fetchFile, fetchImages, buildProtoUrl } from '../lib/figma';
 import type { ScreenFrame, FigmaConfig } from '../types';
 
+function inferKind(name: string, width?: number, height?: number): 'mobile' | 'desktop' {
+  if (typeof width === 'number' && typeof height === 'number' && width > 0 && height > 0) {
+    // Portrait-ish frames are treated as "mobile".
+    if (height >= width * 1.05) return 'mobile';
+    return 'desktop';
+  }
+
+  const n = name.toLowerCase();
+  if (/(iphone|ipad|android|mobile|phone|samsung|pixel|galaxy|iphone|ios)/i.test(n)) return 'mobile';
+  return 'desktop';
+}
+
 interface State {
   loading: boolean;
   error: string | null;
@@ -26,11 +38,25 @@ export function useFigmaFile() {
       const file = await fetchFile(config.fileKey, config.token);
 
       // Collect all top-level FRAME nodes across all pages
-      const frames: Array<{ id: string; name: string; pageId: string; pageName: string }> = [];
+      const frames: Array<{
+        id: string;
+        name: string;
+        pageId: string;
+        pageName: string;
+        width?: number;
+        height?: number;
+      }> = [];
       for (const page of file.document.children) {
         for (const node of page.children ?? []) {
           if (node.type === 'FRAME' || node.type === 'COMPONENT') {
-            frames.push({ id: node.id, name: node.name, pageId: page.id, pageName: page.name });
+            frames.push({
+              id: node.id,
+              name: node.name,
+              pageId: page.id,
+              pageName: page.name,
+              width: node.absoluteBoundingBox?.width,
+              height: node.absoluteBoundingBox?.height,
+            });
           }
         }
       }
@@ -65,6 +91,7 @@ export function useFigmaFile() {
         pageName: f.pageName,
         thumbnailUrl: imageMap[f.id] ?? undefined,
         protoUrl: buildProtoUrl(config.fileKey, f.id, file.name),
+        kind: inferKind(f.name, f.width, f.height),
       }));
 
       setState({

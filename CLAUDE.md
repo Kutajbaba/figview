@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # start dev server (Vite, default port 5173/5174)
+npm run dev      # start dev server (Vite, tries 5173+ until a free port is found)
 npm run build    # tsc type-check + Vite production build
 npm run lint     # ESLint
 npm run preview  # serve the production build locally
@@ -23,6 +23,12 @@ Single-page React app with two views — **Setup** and **Grid** — controlled b
 2. `parseFigmaUrl` (`src/lib/figma.ts`) extracts the `fileKey` from any Figma URL format (`/file/`, `/design/`, `/proto/`).
 3. `useFigmaFile` hook calls the Figma REST API: `GET /v1/files/{fileKey}?depth=2` to get all pages and their top-level `FRAME`/`COMPONENT` nodes, then `GET /v1/images/{fileKey}` in batches of 50 to fetch PNG thumbnails.
 4. `ScreenGrid` renders the results with page-tab filtering and name search. Each `ScreenCard` opens a prototype jump URL on click.
+
+### State and view transitions
+
+- `App.tsx` uses `effectiveView` to guard the grid: if `load()` throws or returns no screens, it stays on `setup` even though `setView('grid')` was called.
+- The Figma token is persisted to `localStorage` under the key `figview:token` (see `Setup.tsx:TOKEN_KEY`).
+- `FigmaConfig.protoFileKey` exists in `types.ts` but is not currently populated or used anywhere.
 
 ### Figma prototype URL format
 

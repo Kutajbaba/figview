@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { ScreenCard } from './ScreenCard';
 import type { ScreenFrame } from '../types';
 
@@ -11,6 +12,10 @@ interface Props {
 export function ScreenGrid({ screens, fileName, onReset }: Props) {
   const [search, setSearch] = useState('');
   const [activePage, setActivePage] = useState<string>('__all__');
+  const [device, setDevice] = useState<'mobile' | 'desktop'>('mobile');
+  const [mobileColumns, setMobileColumns] = useState<number>(4);
+  const [desktopColumns, setDesktopColumns] = useState<number>(3);
+  const columns = device === 'mobile' ? mobileColumns : desktopColumns;
 
   const pages = useMemo(() => {
     const set = new Set(screens.map(s => s.pageName));
@@ -19,13 +24,14 @@ export function ScreenGrid({ screens, fileName, onReset }: Props) {
 
   const filtered = useMemo(() => {
     let result = screens;
+    result = result.filter(s => s.kind === device);
     if (activePage !== '__all__') result = result.filter(s => s.pageName === activePage);
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(s => s.name.toLowerCase().includes(q));
     }
     return result;
-  }, [screens, activePage, search]);
+  }, [screens, device, activePage, search]);
 
   return (
     <div className="grid-view">
@@ -67,12 +73,52 @@ export function ScreenGrid({ screens, fileName, onReset }: Props) {
             </button>
           ))}
         </div>
+
+        <div className="device-tabs">
+          <button
+            className={`device-tab page-tab ${device === 'mobile' ? 'active' : ''}`}
+            onClick={() => setDevice('mobile')}
+          >
+            Mobile
+          </button>
+          <button
+            className={`device-tab page-tab ${device === 'desktop' ? 'active' : ''}`}
+            onClick={() => setDevice('desktop')}
+          >
+            Desktop
+          </button>
+        </div>
+
+        <div className="columns-control">
+          <div className="columns-top">
+            <span className="columns-label">Columns ({device})</span>
+            <span className="columns-value">{columns}</span>
+          </div>
+          <input
+            className="columns-range"
+            type="range"
+            min={1}
+            max={6}
+            step={1}
+            value={columns}
+            onChange={e => {
+              const v = parseInt(e.target.value, 10);
+              if (device === 'mobile') setMobileColumns(v);
+              else setDesktopColumns(v);
+            }}
+            aria-label="Columns per row"
+          />
+          <div className="columns-hint">Adjust gallery density</div>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="empty-state">No screens match "{search}"</div>
       ) : (
-        <div className="screen-grid">
+        <div
+          className="screen-grid"
+          style={{ '--columns': columns } as CSSProperties}
+        >
           {filtered.map((screen, i) => (
             <ScreenCard key={screen.id} screen={screen} index={i} />
           ))}

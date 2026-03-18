@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { ScreenFrame } from '../types';
 
 interface Props {
@@ -17,8 +18,9 @@ export function ScreenCard({ screen, index }: Props) {
   return (
     <article
       className="screen-card"
+      data-kind={screen.kind}
       onClick={handleClick}
-      style={{ '--delay': `${index * 30}ms` } as React.CSSProperties}
+      style={{ '--delay': `${index * 30}ms` } as CSSProperties}
       title={`Jump to: ${screen.name}`}
     >
       <div className="screen-thumb">
@@ -38,13 +40,17 @@ export function ScreenCard({ screen, index }: Props) {
             <span className="thumb-placeholder-icon">⬜</span>
           </div>
         )}
-        <div className="screen-overlay">
-          <span className="overlay-cta">Open in Prototype ↗</span>
+
+        <div className="thumb-bottom">
+          <div className="thumb-title" title={screen.name}>
+            {screen.name}
+          </div>
+          <div className="thumb-page">{screen.pageName}</div>
         </div>
-      </div>
-      <div className="screen-meta">
-        <span className="screen-name">{screen.name}</span>
-        <span className="screen-page">{screen.pageName}</span>
+
+        <div className="screen-overlay">
+          <span className="overlay-cta">View Prototype ↗</span>
+        </div>
       </div>
     </article>
   );
