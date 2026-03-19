@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react';
 import { fetchFile, fetchImages, buildProtoUrl } from '../lib/figma';
+import {
+  isLikelyPrototypeScreen,
+  shouldSkipPrototypeIndexingPage,
+} from '../lib/prototypeFrames';
 import type { ScreenFrame, FigmaConfig } from '../types';
 
 function inferKind(name: string, width?: number, height?: number): 'mobile' | 'desktop' {
@@ -47,22 +51,35 @@ export function useFigmaFile() {
         height?: number;
       }> = [];
       for (const page of file.document.children) {
+        if (shouldSkipPrototypeIndexingPage(page.name)) {
+          continue;
+        }
+
         for (const node of page.children ?? []) {
-          if (node.type === 'FRAME' || node.type === 'COMPONENT') {
-            frames.push({
-              id: node.id,
-              name: node.name,
-              pageId: page.id,
-              pageName: page.name,
-              width: node.absoluteBoundingBox?.width,
-              height: node.absoluteBoundingBox?.height,
-            });
+          if (node.type !== 'FRAME' && node.type !== 'COMPONENT') continue;
+
+          const width = node.absoluteBoundingBox?.width;
+          const height = node.absoluteBoundingBox?.height;
+
+          if (!isLikelyPrototypeScreen(width, height)) {
+            continue;
           }
+
+          frames.push({
+            id: node.id,
+            name: node.name,
+            pageId: page.id,
+            pageName: page.name,
+            width,
+            height,
+          });
         }
       }
 
       if (frames.length === 0) {
-        throw new Error('No frames found in this file. Make sure the file has top-level frames.');
+        throw new Error(
+          'No prototype-sized screens found. Library or component-only pages are skipped. Add top-level frames that look like phone, tablet, or desktop screens (not small UI tiles).'
+        );
       }
 
       setState(s => ({
