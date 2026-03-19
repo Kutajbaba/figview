@@ -112,5 +112,15 @@ export function useFigmaFile() {
     }
   }, []);
 
-  return { ...state, load };
+  const reset = useCallback(() => {
+    setState({
+      loading: false,
+      error: null,
+      fileName: '',
+      screens: [],
+      progress: '',
+    });
+  }, []);
+
+  return { ...state, load, reset };
 }

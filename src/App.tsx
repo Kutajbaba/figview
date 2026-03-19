@@ -1,39 +1,28 @@
-import { useState } from 'react';
 import { Setup } from './components/Setup';
 import { ScreenGrid } from './components/ScreenGrid';
+import { DashboardShell } from './components/DashboardShell';
 import { Loader } from './components/Loader';
 import { useFigmaFile } from './hooks/useFigmaFile';
-import type { FigmaConfig } from './types';
 import './index.css';
 
-type View = 'setup' | 'grid';
-
 export default function App() {
-  const [view, setView] = useState<View>('setup');
-  const { load, loading, error, screens, fileName, progress } = useFigmaFile();
+  const { load, loading, error, screens, fileName, progress, reset } = useFigmaFile();
 
-  const handleLoad = async (config: FigmaConfig) => {
-    await load(config);
-    setView('grid');
-  };
-
-  const effectiveView: View = view === 'grid' && screens.length > 0 ? 'grid' : 'setup';
+  if (screens.length > 0) {
+    return (
+      <>
+        {loading && <Loader message={progress || 'Loading…'} />}
+        <DashboardShell fileName={fileName} screenCount={screens.length} onNewFile={reset}>
+          <ScreenGrid screens={screens} fileName={fileName} />
+        </DashboardShell>
+      </>
+    );
+  }
 
   return (
-    <main className="app">
-      {loading && <Loader message={progress} />}
-
-      {!loading && effectiveView === 'setup' && (
-        <Setup onLoad={handleLoad} loading={loading} error={error} />
-      )}
-
-      {!loading && effectiveView === 'grid' && (
-        <ScreenGrid
-          screens={screens}
-          fileName={fileName}
-          onReset={() => setView('setup')}
-        />
-      )}
-    </main>
+    <>
+      {loading && <Loader message={progress || 'Loading…'} />}
+      <Setup onLoad={load} loading={loading} error={error} progress={progress} fileName={fileName} />
+    </>
   );
 }
