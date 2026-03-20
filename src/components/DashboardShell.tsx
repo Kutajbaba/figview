@@ -27,8 +27,8 @@ export function DashboardShell({
   className,
 }: Props) {
   return (
-    <div className={cn('flex min-h-screen bg-background', className)}>
-      <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-border bg-card px-4 py-6">
+    <div className={cn('flex h-dvh min-h-0 overflow-hidden bg-background', className)}>
+      <aside className="flex h-full min-h-0 w-[260px] shrink-0 flex-col overflow-hidden border-r border-border bg-card px-4 py-6">
         <div className="flex shrink-0 items-center gap-2 px-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Layers className="h-4 w-4" />
@@ -103,7 +103,7 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
     </div>
   );
 }
