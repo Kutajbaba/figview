@@ -47,6 +47,10 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Must match Google Fonts’ font-family: 'Cormorant Garamond' (serif).
+        cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        // Must match Google Fonts’ font-family: 'IBM Plex Mono'.
+        ibmPlexMono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       backgroundImage: {
         'grid-subtle':

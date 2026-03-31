@@ -55,22 +55,26 @@ export function ScreenGrid({ screens, activePage }: Props) {
     return result;
   }, [screens, device, activePage, search]);
 
-  const filteredIdsKey = useMemo(() => filtered.map(s => s.id).join(','), [filtered]);
+  const clampedSelectedIndex = useMemo(() => {
+    if (filtered.length === 0) return 0;
+    return Math.min(selectedIndex, filtered.length - 1);
+  }, [filtered.length, selectedIndex]);
 
-  useEffect(() => {
-    setSelectedIndex(i => {
+  const clampSelectedIndex = useCallback(
+    (i: number) => {
       if (filtered.length === 0) return 0;
-      return Math.min(i, filtered.length - 1);
-    });
-  }, [filteredIdsKey]);
+      return Math.max(0, Math.min(i, filtered.length - 1));
+    },
+    [filtered.length]
+  );
 
   const goPrev = useCallback(() => {
-    setSelectedIndex(i => Math.max(0, i - 1));
-  }, []);
+    setSelectedIndex(i => clampSelectedIndex(i - 1));
+  }, [clampSelectedIndex]);
 
   const goNext = useCallback(() => {
-    setSelectedIndex(i => (filtered.length ? Math.min(filtered.length - 1, i + 1) : 0));
-  }, [filtered.length]);
+    setSelectedIndex(i => clampSelectedIndex(i + 1));
+  }, [clampSelectedIndex]);
 
   useEffect(() => {
     if (viewMode !== 'single' || filtered.length === 0) return;
@@ -90,9 +94,11 @@ export function ScreenGrid({ screens, activePage }: Props) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [viewMode, filtered.length, goPrev, goNext]);
 
-  const singleScreen = filtered[selectedIndex];
+  const singleScreen = filtered[clampedSelectedIndex];
   const positionLabel =
-    filtered.length > 0 ? `${selectedIndex + 1} / ${filtered.length}` : '0 / 0';
+    filtered.length > 0
+      ? `${clampedSelectedIndex + 1} / ${filtered.length}`
+      : '0 / 0';
 
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
@@ -166,8 +172,8 @@ export function ScreenGrid({ screens, activePage }: Props) {
         {viewMode === 'single' && filtered.length > 0 && (
           <ScreenFilmstrip
             screens={filtered}
-            selectedIndex={selectedIndex}
-            onSelect={setSelectedIndex}
+            selectedIndex={clampedSelectedIndex}
+            onSelect={i => setSelectedIndex(clampSelectedIndex(i))}
           />
         )}
 

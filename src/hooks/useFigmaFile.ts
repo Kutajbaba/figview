@@ -4,6 +4,7 @@ import {
   isLikelyPrototypeScreen,
   shouldSkipPrototypeIndexingPage,
 } from '../lib/prototypeFrames';
+import { recordRecentDesign } from '../lib/recentDesigns';
 import type { ScreenFrame, FigmaConfig } from '../types';
 
 function inferKind(name: string, width?: number, height?: number): 'mobile' | 'desktop' {
@@ -110,6 +111,14 @@ export function useFigmaFile() {
         protoUrl: buildProtoUrl(config.fileKey, f.id, file.name),
         kind: inferKind(f.name, f.width, f.height),
       }));
+
+      const thumb = file.thumbnailUrl ?? screens[0]?.thumbnailUrl ?? null;
+      recordRecentDesign({
+        fileKey: config.fileKey,
+        fileName: file.name,
+        rawUrl: config.rawUrl,
+        thumbnailUrl: thumb ?? null,
+      });
 
       setState({
         loading: false,
