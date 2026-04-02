@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { ExternalLink } from 'lucide-react';
+import type { CSSProperties, PointerEvent } from 'react';
+import { ExternalLink, GripVertical } from 'lucide-react';
 import type { ScreenFrame } from '../types';
 import { cn } from '@/lib/utils';
 
 interface Props {
   screen: ScreenFrame;
   index: number;
+  reorderEnabled?: boolean;
+  onReorderHandlePointerDown?: (e: PointerEvent<HTMLButtonElement>) => void;
 }
 
-export function ScreenCard({ screen, index }: Props) {
+export function ScreenCard({ screen, index, reorderEnabled, onReorderHandlePointerDown }: Props) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -21,11 +23,23 @@ export function ScreenCard({ screen, index }: Props) {
 
   return (
     <article
-      className="group cursor-pointer animate-fade-in"
+      data-screen-root
+      className="group relative cursor-pointer animate-fade-in"
       style={{ animationDelay: `${Math.min(index, 20) * 35}ms` } as CSSProperties}
       onClick={handleClick}
       title={`Open prototype: ${screen.name}`}
     >
+      {reorderEnabled && onReorderHandlePointerDown && (
+        <button
+          type="button"
+          onPointerDown={onReorderHandlePointerDown}
+          onClick={e => e.stopPropagation()}
+          className="absolute left-2 top-2 z-20 flex size-9 cursor-grab touch-none items-center justify-center rounded-lg border border-border/80 bg-background/95 text-muted-foreground shadow-sm backdrop-blur-sm active:cursor-grabbing hover:text-foreground"
+          aria-label={`Drag to reorder: ${screen.name}`}
+        >
+          <GripVertical className="size-4" aria-hidden />
+        </button>
+      )}
       <div
         className={cn(
           'relative overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-200',
@@ -41,9 +55,13 @@ export function ScreenCard({ screen, index }: Props) {
             <img
               src={screen.thumbnailUrl}
               alt={screen.name}
-              className={cn('h-full w-full object-contain transition-opacity duration-300', imgLoaded ? 'opacity-100' : 'opacity-0')}
+              className={cn(
+                'h-full w-full object-contain transition-opacity duration-300',
+                imgLoaded ? 'opacity-100' : 'opacity-0'
+              )}
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
+              draggable={false}
             />
           </>
         ) : (
