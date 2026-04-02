@@ -21,13 +21,25 @@ function isRecentDesignRecord(x: unknown): x is RecentDesignRecord {
   );
 }
 
+/** Keep first occurrence per fileKey (storage should already be unique; this guards corrupt duplicates). */
+function dedupeByFileKey(items: RecentDesignRecord[]): RecentDesignRecord[] {
+  const seen = new Set<string>();
+  const out: RecentDesignRecord[] = [];
+  for (const item of items) {
+    if (seen.has(item.fileKey)) continue;
+    seen.add(item.fileKey);
+    out.push(item);
+  }
+  return out;
+}
+
 export function getRecentDesigns(): RecentDesignRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isRecentDesignRecord);
+    return dedupeByFileKey(parsed.filter(isRecentDesignRecord));
   } catch {
     return [];
   }
@@ -59,4 +71,38 @@ export function removeRecentDesign(fileKey: string): void {
   if (next.length === prev.length) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent('figview:recent-changed'));
+}
+
+/** Web Share API with clipboard / execCommand fallbacks (same behavior as recent-design cards). */
+export async function shareRecentDesign(entry: RecentDesignRecord): Promise<void> {
+  const url = entry.rawUrl;
+  const title = entry.fileName;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, url });
+      return;
+    } catch {
+      // User cancel/unsupported is fine; fall back to clipboard below.
+    }
+  }
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(url);
+      return;
+    } catch {
+      // Fall through to legacy copy below.
+    }
+  }
+
+  const ta = document.createElement('textarea');
+  ta.value = url;
+  ta.setAttribute('readonly', 'true');
+  ta.style.position = 'absolute';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
 }
