@@ -3,6 +3,7 @@ import { ArrowLeft, Link2, Presentation } from 'lucide-react';
 import { Setup } from './components/Setup';
 import { ScreenGrid } from './components/ScreenGrid';
 import { AppShell, type AppSection } from './components/AppShell';
+import { AddDesignFileModal } from './components/AddDesignFileModal';
 import { PostLoadModal, type PostLoadChoice } from './components/PostLoadModal';
 import { DashboardPage } from './components/DashboardPage';
 import { DesignsBrowsePage } from './components/DesignsBrowsePage';
@@ -57,7 +58,7 @@ function FigviewApp({
   progress,
   error,
   load,
-  reset,
+  reset: _reset,
   shareBootstrapOrder,
   isShareViewer,
 }: FigviewAppProps) {
@@ -71,6 +72,7 @@ function FigviewApp({
   );
   const [shareLinkFeedback, setShareLinkFeedback] = useState<'idle' | 'copied'>('idle');
   const [presentationOpen, setPresentationOpen] = useState(false);
+  const [shellAddFileOpen, setShellAddFileOpen] = useState(false);
 
   const displayOrder = useMemo(() => mergeOrderWithScreens(screenOrder, screens), [screenOrder, screens]);
 
@@ -140,10 +142,21 @@ function FigviewApp({
   );
 
   const handleNewFile = useCallback(() => {
-    reset();
-    setAppSection('dashboard');
-    setPageSelection({});
-  }, [reset]);
+    setShellAddFileOpen(true);
+  }, []);
+
+  const loadFromShellModal = useCallback(
+    async (config: FigmaConfig) => {
+      const ok = await load(config);
+      if (ok) {
+        setAppSection('designs');
+        setDesignsPhase('grid');
+        setPageSelection({});
+      }
+      return ok;
+    },
+    [load]
+  );
 
   const handleDesignFileSelect = useCallback(
     async (entry: RecentDesignRecord) => {
@@ -168,9 +181,13 @@ function FigviewApp({
   }, [screens]);
 
   const addDesignFile = useMemo(
-    () =>
-      screens.length > 0 ? { onLoad: load, loading, error, progress } : undefined,
-    [screens.length, load, loading, error, progress]
+    () => ({ onLoad: load, loading, error, progress }),
+    [load, loading, error, progress]
+  );
+
+  const addDesignFileShell = useMemo(
+    () => ({ onLoad: loadFromShellModal, loading, error, progress }),
+    [loadFromShellModal, loading, error, progress]
   );
 
   return (
@@ -182,10 +199,16 @@ function FigviewApp({
         screenCount={screens.length}
         onChoose={handlePostLoadChoice}
       />
+      {!isShareViewer && (
+        <AddDesignFileModal
+          open={shellAddFileOpen}
+          onOpenChange={setShellAddFileOpen}
+          addDesignFile={addDesignFileShell}
+        />
+      )}
       <AppShell
         activeSection={appSection}
         onSectionChange={handleSectionChange}
-        fileName={fileName}
         screenCount={screens.length}
         pages={pages}
         activePage={activePage}
@@ -271,6 +294,9 @@ function FigviewApp({
                     activePage={activePage}
                     figmaPages={pages}
                     onFigmaPageChange={setActivePage}
+                    fileName={fileName}
+                    screenCount={screens.length}
+                    shareViewer={isShareViewer}
                     layoutReadOnly={isShareViewer}
                     onPersistScreenOrder={isShareViewer ? undefined : persistScreenOrder}
                   />
