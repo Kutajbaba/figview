@@ -123,6 +123,10 @@ interface Props {
   /** Figma file pages — rendered as a secondary nav beside the screen content. */
   figmaPages: string[];
   onFigmaPageChange: (pageId: string) => void;
+  /** Shown in the bottom of the Figma pages nav. */
+  fileName?: string;
+  screenCount?: number;
+  shareViewer?: boolean;
   /** When true, hide drag handles and persist callbacks (shared view-only links). */
   layoutReadOnly?: boolean;
   /** Persist full-file screen order after a drag-reorder in the grid. */
@@ -134,6 +138,9 @@ export function ScreenGrid({
   activePage,
   figmaPages,
   onFigmaPageChange,
+  fileName,
+  screenCount,
+  shareViewer,
   layoutReadOnly,
   onPersistScreenOrder,
 }: Props) {
@@ -425,14 +432,6 @@ export function ScreenGrid({
               </Tabs>
 
               <span className="text-sm text-muted-foreground">{filtered.length} shown</span>
-              {onPersistScreenOrder &&
-                !layoutReadOnly &&
-                (viewMode === 'grid' || viewMode === 'single') &&
-                filtered.length > 1 && (
-                  <span className="text-xs text-muted-foreground">
-                    · Drag handles to reorder · saved automatically
-                  </span>
-                )}
             </div>
 
             {/* Search stays in the top bar — wide column (2× default); default input height */}
@@ -484,6 +483,15 @@ export function ScreenGrid({
       </div>
 
       <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        <FigmaPagesSideNav
+          pages={figmaPages}
+          activePage={activePage}
+          onPageChange={onFigmaPageChange}
+          fileName={fileName}
+          screenCount={screenCount}
+          shareViewer={shareViewer}
+        />
+
         {viewMode === 'single' && filtered.length > 0 && (
           <ScreenFilmstrip
             scrollRef={stripScrollRef}
@@ -500,12 +508,6 @@ export function ScreenGrid({
             onGripPointerDown={handleStripGripPointerDown}
           />
         )}
-
-        <FigmaPagesSideNav
-          pages={figmaPages}
-          activePage={activePage}
-          onPageChange={onFigmaPageChange}
-        />
 
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
