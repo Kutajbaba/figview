@@ -51,6 +51,10 @@ export default {
         cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         // Must match Google Fonts’ font-family: 'IBM Plex Mono'.
         ibmPlexMono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+        sfCompactRounded: ['"SF Compact Rounded"', 'sans-serif'],
+        sfCompactDisplay: ['"SF Compact Display"', 'sans-serif'],
+        sfCompactText: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sfProDisplay: ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       backgroundImage: {
         'grid-subtle':

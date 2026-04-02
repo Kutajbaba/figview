@@ -48,6 +48,10 @@
   gap: 1rem;
 }
 
+.screen-grid-tw > .screen-grid-cell {
+  transition: opacity 0.15s ease-out;
+}
+
 @media (max-width: 640px) {
   .screen-grid-tw {
     grid-template-columns: repeat(2, minmax(0, 1fr));
