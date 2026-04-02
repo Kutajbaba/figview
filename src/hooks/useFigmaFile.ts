@@ -23,8 +23,11 @@ interface State {
   loading: boolean;
   error: string | null;
   fileName: string;
+  fileKey: string;
   screens: ScreenFrame[];
   progress: string;
+  /** Increments on each successful load (screens may be non-empty). Used to gate one-shot UI like post-load modals. */
+  loadSessionId: number;
 }
 
 export function useFigmaFile() {
@@ -32,12 +35,19 @@ export function useFigmaFile() {
     loading: false,
     error: null,
     fileName: '',
+    fileKey: '',
     screens: [],
     progress: '',
+    loadSessionId: 0,
   });
 
-  const load = useCallback(async (config: FigmaConfig) => {
-    setState(s => ({ ...s, loading: true, error: null, screens: [], progress: 'Fetching file…' }));
+  const load = useCallback(async (config: FigmaConfig): Promise<boolean> => {
+    setState(s => ({
+      ...s,
+      loading: true,
+      error: null,
+      progress: 'Fetching file…',
+    }));
 
     try {
       const file = await fetchFile(config.fileKey, config.token);
@@ -120,21 +130,24 @@ export function useFigmaFile() {
         thumbnailUrl: thumb ?? null,
       });
 
-      setState({
+      setState(s => ({
         loading: false,
         error: null,
         fileName: file.name,
+        fileKey: config.fileKey,
         screens,
         progress: '',
-      });
+        loadSessionId: s.loadSessionId + 1,
+      }));
+      return true;
     } catch (e: unknown) {
-      setState({
+      setState(s => ({
+        ...s,
         loading: false,
         error: e instanceof Error ? e.message : 'Unknown error',
-        fileName: '',
-        screens: [],
         progress: '',
-      });
+      }));
+      return false;
     }
   }, []);
 
@@ -143,8 +156,10 @@ export function useFigmaFile() {
       loading: false,
       error: null,
       fileName: '',
+      fileKey: '',
       screens: [],
       progress: '',
+      loadSessionId: 0,
     });
   }, []);
 
