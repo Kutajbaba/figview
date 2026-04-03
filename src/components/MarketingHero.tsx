@@ -5,8 +5,8 @@ interface Props {
 export function MarketingHero({ fileName }: Props) {
   return (
     <div className="w-full text-center">
-      <h1 className="font-sfCompactDisplay inline-flex w-full items-center justify-center align-middle text-balance text-4xl font-bold tracking-tight text-stone-900 sm:text-[64px] sm:leading-[1.1]">
-        Explore figma design with ease
+      <h1 className="font-ibmPlexMono inline-flex w-full items-center justify-center align-middle text-balance text-4xl font-bold tracking-tight text-stone-900 sm:text-[64px] sm:leading-[1.1]">
+        Design on Figma, Present with Figview
       </h1>
       <p className="font-sfCompactText mx-auto mt-5 w-full max-w-none text-pretty text-base text-stone-600 sm:text-lg">
         Navigate and present figma designs with confidence
