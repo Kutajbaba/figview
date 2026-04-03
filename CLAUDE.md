@@ -15,7 +15,7 @@ No test framework is configured.
 
 ## Architecture
 
-Single-page React app with two views — **Setup** and **Grid** — controlled by a `view` state string in `App.tsx`. No router.
+Single-page React app (no router). `App.tsx` is the top-level component; when screens are loaded it renders `FigviewApp`, otherwise it shows `Setup`.
 
 ### Data flow
 
@@ -24,10 +24,27 @@ Single-page React app with two views — **Setup** and **Grid** — controlled b
 3. `useFigmaFile` hook calls the Figma REST API: `GET /v1/files/{fileKey}?depth=2` to get all pages and their top-level `FRAME`/`COMPONENT` nodes, then `GET /v1/images/{fileKey}` in batches of 50 to fetch PNG thumbnails.
 4. `ScreenGrid` renders the results with page-tab filtering and name search. Each `ScreenCard` opens a prototype jump URL on click.
 
-### State and view transitions
+### Shell sections and navigation
 
-- `App.tsx` uses `effectiveView` to guard the grid: if `load()` throws or returns no screens, it stays on `setup` even though `setView('grid')` was called.
-- The Figma token is persisted to `localStorage` under the key `figview:token` (see `Setup.tsx:TOKEN_KEY`).
+`FigviewApp` wraps everything in `AppShell`, which provides a sidebar with four sections (`AppSection` type): `dashboard`, `designs`, `account`, `analytics`. Section state lives in `App.tsx`; there is no URL-based routing.
+
+The **designs** section has two phases (`DesignsPhase`): `browse` (shows `DesignsBrowsePage` with a file picker and recent designs) and `grid` (shows `ScreenGrid` for the currently loaded file). After a file loads, `PostLoadModal` appears once per browser tab session asking the user which phase to enter; the choice is stored in `sessionStorage`.
+
+### State and storage
+
+| Key | Storage | Purpose |
+|---|---|---|
+| `figview:token` | `localStorage` | Figma PAT |
+| `figview:screen-order:{fileKey}` | `localStorage` | Persisted drag-reorder for each file |
+| `figview:post-load-seen` | `sessionStorage` | Whether the post-load modal has shown this tab |
+| `figview:post-load-pref` | `sessionStorage` | Last section choice (`designs` \| `explore`) |
+
+All storage keys and helpers live in `src/lib/figviewStorageKeys.ts`; screen-order helpers are in `src/lib/screenLayout.ts`.
+
+### Share links
+
+`buildShareViewUrl` (`src/lib/shareLink.ts`) encodes `?view=share&file={fileKey}&order={base64}` into the current page URL. `readShareParamsFromLocation` detects this on load; if present, `isShareViewer` is `true`, which hides editing controls and locks the section to `designs/grid`.
+
 - `FigmaConfig.protoFileKey` exists in `types.ts` but is not currently populated or used anywhere.
 
 ### Figma prototype URL format
