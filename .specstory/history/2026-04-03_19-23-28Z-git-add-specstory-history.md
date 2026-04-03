@@ -717,3 +717,1426 @@ Stage specific specstory history file
 _**Agent (claude-sonnet-4-6 2026-04-03 20:47:50Z)**_
 
 Done.
+
+---
+
+_**User (2026-04-03 21:04:45Z)**_
+
+<command-message>init</command-message>
+<command-name>/init</command-name>
+
+_**User (2026-04-03 21:04:45Z)**_
+
+Please analyze this codebase and create a CLAUDE.md file, which will be given to future instances of Claude Code to operate in this repository.
+
+What to add:
+1. Commands that will be commonly used, such as how to build, lint, and run tests. Include the necessary commands to develop in this codebase, such as how to run a single test.
+2. High-level code architecture and structure so that future instances can be productive more quickly. Focus on the "big picture" architecture that requires reading multiple files to understand.
+
+Usage notes:
+- If there's already a CLAUDE.md, suggest improvements to it.
+- When you make the initial CLAUDE.md, do not repeat yourself and do not include obvious instructions like "Provide helpful error messages to users", "Write unit tests for all new utilities", "Never include sensitive information (API keys, tokens) in code or commits".
+- Avoid listing every component or file structure that can be easily discovered.
+- Don't include generic development practices.
+- If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include the important parts.
+- If there is a README.md, make sure to include the important parts.
+- Do not make up information such as "Common Development Tasks", "Tips for Development", "Support and Documentation" unless this is expressly included in other files that you read.
+- Be sure to prefix the file with the following text:
+
+```
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+```
+
+---
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:05Z)**_
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:05Z)**_
+
+The CLAUDE.md already exists. Let me review the codebase to see if there are improvements to suggest.
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:07Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./CLAUDE.md`
+
+```text
+1	# CLAUDE.md
+2	
+3	This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+4	
+5	## Commands
+6	
+7	```bash
+8	npm run dev      # start dev server (Vite, tries 5173+ until a free port is found)
+9	npm run build    # tsc type-check + Vite production build
+10	npm run lint     # ESLint
+11	npm run preview  # serve the production build locally
+12	```
+13	
+14	No test framework is configured.
+15	
+16	## Architecture
+17	
+18	Single-page React app (no router). `App.tsx` is the top-level component; when screens are loaded it renders `FigviewApp`, otherwise it shows `Setup`.
+19	
+20	### Data flow
+21	
+22	1. `Setup` collects a Figma Personal Access Token (persisted to `localStorage`) and a file URL.
+23	2. `parseFigmaUrl` (`src/lib/figma.ts`) extracts the `fileKey` from any Figma URL format (`/file/`, `/design/`, `/proto/`).
+24	3. `useFigmaFile` hook calls the Figma REST API: `GET /v1/files/{fileKey}?depth=2` to get all pages and their top-level `FRAME`/`COMPONENT` nodes, then `GET /v1/images/{fileKey}` in batches of 50 to fetch PNG thumbnails.
+25	4. `ScreenGrid` renders the results with page-tab filtering and name search. Each `ScreenCard` opens a prototype jump URL on click.
+26	
+27	### Shell sections and navigation
+28	
+29	`FigviewApp` wraps everything in `AppShell`, which provides a sidebar with four sections (`AppSection` type): `dashboard`, `designs`, `account`, `analytics`. Section state lives in `App.tsx`; there is no URL-based routing.
+30	
+31	The **designs** section has two phases (`DesignsPhase`): `browse` (shows `DesignsBrowsePage` with a file picker and recent designs) and `grid` (shows `ScreenGrid` for the currently loaded file). After a file loads, `PostLoadModal` appears once per browser tab session asking the user which phase to enter; the choice is stored in `sessionStorage`.
+32	
+33	### State and storage
+34	
+35	| Key | Storage | Purpose |
+36	|---|---|---|
+37	| `figview:token` | `localStorage` | Figma PAT |
+38	| `figview:screen-order:{fileKey}` | `localStorage` | Persisted drag-reorder for each file |
+39	| `figview:post-load-seen` | `sessionStorage` | Whether the post-load modal has shown this tab |
+40	| `figview:post-load-pref` | `sessionStorage` | Last section choice (`designs` \| `explore`) |
+41	
+42	All storage keys and helpers live in `src/lib/figviewStorageKeys.ts`; screen-order helpers are in `src/lib/screenLayout.ts`.
+43	
+44	### Share links
+45	
+46	`buildShareViewUrl` (`src/lib/shareLink.ts`) encodes `?view=share&file={fileKey}&order={base64}` into the current page URL. `readShareParamsFromLocation` detects this on load; if present, `isShareViewer` is `true`, which hides editing controls and locks the section to `designs/grid`.
+47	
+48	- `FigmaConfig.protoFileKey` exists in `types.ts` but is not currently populated or used anywhere.
+49	
+50	### Figma prototype URL format
+51	
+52	```
+53	https://www.figma.com/proto/{fileKey}/{slug}?node-id={nodeId}&scaling=contain&hide-ui=1
+54	```
+55	
+56	Node IDs from the API use `:` (e.g. `1:23`) — these must be replaced with `-` for prototype URLs.
+57	
+58	### Styling
+59	
+60	All styles are in `src/index.css` (no CSS modules, no Tailwind). Design tokens are CSS custom properties on `:root`. Fonts are IBM Plex Mono (body/mono) and Syne (display/headings), loaded from Google Fonts in `index.html`.
+61	
+62	### TypeScript strictness
+63	
+64	`tsconfig.app.json` enables `strict`, `noUnusedLocals`, and `noUnusedParameters`. The build (`tsc -b`) will fail on unused variables.
+65
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:07Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Glob"><details>
+<summary>Tool use: **Glob**</summary>
+ path `./` pattern `src/**/*.{ts,tsx}`
+
+```text
+src/main.tsx
+src/types.ts
+src/lib/figma.ts
+src/lib/utils.ts
+src/components/ui/card.tsx
+src/components/ui/separator.tsx
+src/components/ui/tabs.tsx
+src/components/Loader.tsx
+src/components/ui/button.tsx
+src/components/ui/badge.tsx
+src/components/ui/input.tsx
+src/components/ui/label.tsx
+src/lib/pageNavLabel.ts
+src/lib/prototypeFrames.ts
+src/components/SingleScreenStage.tsx
+src/lib/figviewStorageKeys.ts
+src/components/AccountPage.tsx
+src/components/PostLoadModal.tsx
+src/lib/recentDesigns.ts
+src/components/DesignFileCard.tsx
+src/components/ComingSoonPage.tsx
+src/components/DashboardPage.tsx
+src/components/AnalyticsPage.tsx
+src/components/AddDesignFileGridSlot.tsx
+src/lib/shareLink.ts
+src/hooks/useFigmaFile.ts
+src/lib/screenLayout.ts
+src/components/ScreenCard.tsx
+src/components/ScreenFilmstrip.tsx
+src/components/AddDesignFileModal.tsx
+src/components/LoadFileFormCard.tsx
+src/components/HomeMarketingShell.tsx
+src/components/DesignsBrowsePage.tsx
+src/components/RecentDesignsSection.tsx
+src/components/PresentationModeOverlay.tsx
+src/components/FigmaPagesSideNav.tsx
+src/components/ScreenGrid.tsx
+src/components/AppShell.tsx
+src/App.tsx
+src/components/MarketingHero.tsx
+src/components/Setup.tsx
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:25Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/App.tsx`
+
+```text
+1	import { useCallback, useEffect, useMemo, useState } from 'react';
+2	import { ArrowLeft, Link2, Presentation } from 'lucide-react';
+3	import { Setup } from './components/Setup';
+4	import { ScreenGrid } from './components/ScreenGrid';
+5	import { AppShell, type AppSection } from './components/AppShell';
+6	import { AddDesignFileModal } from './components/AddDesignFileModal';
+7	import { PostLoadModal, type PostLoadChoice } from './components/PostLoadModal';
+8	import { DashboardPage } from './components/DashboardPage';
+9	import { DesignsBrowsePage } from './components/DesignsBrowsePage';
+10	import { AccountPage } from './components/AccountPage';
+11	import { AnalyticsPage } from './components/AnalyticsPage';
+12	import { Loader } from './components/Loader';
+13	import { Button } from './components/ui/button';
+14	import { useFigmaFile } from './hooks/useFigmaFile';
+15	import {
+16	  hasSeenPostLoadModal,
+17	  markPostLoadModalSeen,
+18	  readInitialAppSectionFromSession,
+19	  TOKEN_KEY,
+20	} from './lib/figviewStorageKeys';
+21	import type { RecentDesignRecord } from './lib/recentDesigns';
+22	import {
+23	  mergeOrderWithScreens,
+24	  readStoredScreenOrder,
+25	  sortScreensByOrder,
+26	  writeStoredScreenOrder,
+27	} from './lib/screenLayout';
+28	import { buildMinimalFigmaDesignUrl, buildShareViewUrl, readShareParamsFromLocation } from './lib/shareLink';
+29	import type { FigmaConfig, ScreenFrame } from './types';
+30	import { PresentationModeOverlay } from './components/PresentationModeOverlay';
+31	import './index.css';
+32	
+33	function initialShellSection(): AppSection {
+34	  const base = readInitialAppSectionFromSession();
+35	  return base === 'designs' ? 'designs' : 'dashboard';
+36	}
+37	
+38	type DesignsPhase = 'browse' | 'grid';
+39	
+40	interface FigviewAppProps {
+41	  screens: ScreenFrame[];
+42	  fileName: string;
+43	  fileKey: string;
+44	  loading: boolean;
+45	  progress: string;
+46	  error: string | null;
+47	  load: (config: FigmaConfig) => Promise<boolean>;
+48	  reset: () => void;
+49	  shareBootstrapOrder: string[] | null;
+50	  isShareViewer: boolean;
+51	}
+52	
+53	function FigviewApp({
+54	  screens,
+55	  fileName,
+56	  fileKey,
+57	  loading,
+58	  progress,
+59	  error,
+60	  load,
+61	  reset: _reset,
+62	  shareBootstrapOrder,
+63	  isShareViewer,
+64	}: FigviewAppProps) {
+65	  const [pageSelection, setPageSelection] = useState<Record<string, string>>({});
+66	  const [appSection, setAppSection] = useState<AppSection>(() =>
+67	    isShareViewer ? 'designs' : initialShellSection()
+68	  );
+69	  const [designsPhase, setDesignsPhase] = useState<DesignsPhase>(() => (isShareViewer ? 'grid' : 'browse'));
+70	  const [screenOrder, setScreenOrder] = useState<string[]>(() =>
+71	    mergeOrderWithScreens(shareBootstrapOrder ?? readStoredScreenOrder(fileKey), screens)
+72	  );
+73	  const [shareLinkFeedback, setShareLinkFeedback] = useState<'idle' | 'copied'>('idle');
+74	  const [presentationOpen, setPresentationOpen] = useState(false);
+75	  const [shellAddFileOpen, setShellAddFileOpen] = useState(false);
+76	
+77	  const displayOrder = useMemo(() => mergeOrderWithScreens(screenOrder, screens), [screenOrder, screens]);
+78	
+79	  const orderedScreens = useMemo(
+80	    () => sortScreensByOrder(screens, displayOrder),
+81	    [screens, displayOrder]
+82	  );
+83	
+84	  const persistScreenOrder = useCallback(
+85	    (next: string[]) => {
+86	      setScreenOrder(next);
+87	      writeStoredScreenOrder(fileKey, next);
+88	    },
+89	    [fileKey]
+90	  );
+91	
+92	  const handleCopyShareLink = useCallback(async () => {
+93	    const order = displayOrder.length > 0 ? displayOrder : screens.map(s => s.id);
+94	    const url = buildShareViewUrl({ fileKey, order });
+95	    try {
+96	      await navigator.clipboard.writeText(url);
+97	      setShareLinkFeedback('copied');
+98	      window.setTimeout(() => setShareLinkFeedback('idle'), 2000);
+99	    } catch {
+100	      setShareLinkFeedback('idle');
+101	    }
+102	  }, [fileKey, displayOrder, screens]);
+103	
+104	  const activePage = pageSelection[fileKey] ?? '__all__';
+105	  const setActivePage = useCallback(
+106	    (pageId: string) => {
+107	      setPageSelection(prev => ({ ...prev, [fileKey]: pageId }));
+108	    },
+109	    [fileKey]
+110	  );
+111	
+112	  const presentationScreens = useMemo(() => {
+113	    if (activePage === '__all__') return orderedScreens;
+114	    return orderedScreens.filter(s => s.pageName === activePage);
+115	  }, [orderedScreens, activePage]);
+116	
+117	  const pages = useMemo(() => {
+118	    const set = new Set(screens.map(s => s.pageName));
+119	    return Array.from(set);
+120	  }, [screens]);
+121	
+122	  const showPostLoadModal =
+123	    screens.length > 0 && !isShareViewer && !hasSeenPostLoadModal();
+124	
+125	  const handlePostLoadChoice = useCallback((choice: PostLoadChoice) => {
+126	    markPostLoadModalSeen(choice === 'designs' ? 'designs' : 'explore');
+127	    if (choice === 'designs') {
+128	      setDesignsPhase('grid');
+129	      setAppSection('designs');
+130	    } else {
+131	      setAppSection('dashboard');
+132	    }
+133	  }, []);
+134	
+135	  const handleSectionChange = useCallback(
+136	    (section: AppSection) => {
+137	      if (isShareViewer) return;
+138	      if (section === 'designs') setDesignsPhase('browse');
+139	      setAppSection(section);
+140	    },
+141	    [isShareViewer]
+142	  );
+143	
+144	  const handleNewFile = useCallback(() => {
+145	    setShellAddFileOpen(true);
+146	  }, []);
+147	
+148	  const loadFromShellModal = useCallback(
+149	    async (config: FigmaConfig) => {
+150	      const ok = await load(config);
+151	      if (ok) {
+152	        setAppSection('designs');
+153	        setDesignsPhase('grid');
+154	        setPageSelection({});
+155	      }
+156	      return ok;
+157	    },
+158	    [load]
+159	  );
+160	
+161	  const handleDesignFileSelect = useCallback(
+162	    async (entry: RecentDesignRecord) => {
+163	      const saved = localStorage.getItem(TOKEN_KEY) ?? '';
+164	      if (!saved.trim()) return;
+165	      if (entry.fileKey !== fileKey) {
+166	        const ok = await load({
+167	          token: saved.trim(),
+168	          fileKey: entry.fileKey,
+169	          rawUrl: entry.rawUrl,
+170	        });
+171	        if (!ok) return;
+172	      }
+173	      setDesignsPhase('grid');
+174	    },
+175	    [load, fileKey]
+176	  );
+177	
+178	  const currentFileThumb = useMemo(() => {
+179	    const withThumb = screens.find(s => s.thumbnailUrl);
+180	    return withThumb?.thumbnailUrl ?? null;
+181	  }, [screens]);
+182	
+183	  const addDesignFile = useMemo(
+184	    () => ({ onLoad: load, loading, error, progress }),
+185	    [load, loading, error, progress]
+186	  );
+187	
+188	  const addDesignFileShell = useMemo(
+189	    () => ({ onLoad: loadFromShellModal, loading, error, progress }),
+190	    [loadFromShellModal, loading, error, progress]
+191	  );
+192	
+193	  return (
+194	    <>
+195	      {loading && <Loader message={progress || 'Loading…'} />}
+196	      <PostLoadModal
+197	        open={showPostLoadModal}
+198	        fileName={fileName}
+199	        screenCount={screens.length}
+200	        onChoose={handlePostLoadChoice}
+201	      />
+202	      {!isShareViewer && (
+203	        <AddDesignFileModal
+204	          open={shellAddFileOpen}
+205	          onOpenChange={setShellAddFileOpen}
+206	          addDesignFile={addDesignFileShell}
+207	        />
+208	      )}
+209	      <AppShell
+210	        activeSection={appSection}
+211	        onSectionChange={handleSectionChange}
+212	        screenCount={screens.length}
+213	        pages={pages}
+214	        activePage={activePage}
+215	        onPageChange={setActivePage}
+216	        onNewFile={handleNewFile}
+217	        shareViewer={isShareViewer}
+218	        figmaPageNavVisible={false}
+219	      >
+220	        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+221	          {error && (
+222	            <div
+223	              className="shrink-0 border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-900 sm:px-8"
+224	              role="alert"
+225	            >
+226	              {error}
+227	            </div>
+228	          )}
+229	          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+230	            {appSection === 'dashboard' && <DashboardPage />}
+231	            {appSection === 'designs' && designsPhase === 'browse' && (
+232	              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+233	                <DesignsBrowsePage
+234	                  currentFileKey={fileKey}
+235	                  currentFileName={fileName}
+236	                  currentThumbnailUrl={currentFileThumb}
+237	                  onOpenFile={handleDesignFileSelect}
+238	                  addDesignFile={addDesignFile}
+239	                />
+240	              </div>
+241	            )}
+242	            {appSection === 'designs' && designsPhase === 'grid' && (
+243	              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+244	                <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-background/90 px-4 py-2 backdrop-blur-md sm:px-6">
+245	                  <div className="flex flex-wrap items-center gap-2">
+246	                    {!isShareViewer && (
+247	                      <Button
+248	                        type="button"
+249	                        variant="ghost"
+250	                        size="sm"
+251	                        className="gap-2 text-muted-foreground hover:text-foreground"
+252	                        onClick={() => setDesignsPhase('browse')}
+253	                      >
+254	                        <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+255	                        All designs
+256	                      </Button>
+257	                    )}
+258	                  </div>
+259	                  <div className="flex flex-wrap items-center justify-end gap-2">
+260	                    <Button
+261	                      type="button"
+262	                      variant="outline"
+263	                      size="sm"
+264	                      className="gap-2 rounded-full"
+265	                      disabled={presentationScreens.length === 0}
+266	                      onClick={() => setPresentationOpen(true)}
+267	                    >
+268	                      <Presentation className="h-4 w-4 shrink-0" aria-hidden />
+269	                      Presentation
+270	                    </Button>
+271	                    {!isShareViewer && (
+272	                      <Button
+273	                        type="button"
+274	                        variant="outline"
+275	                        size="sm"
+276	                        className="gap-2 rounded-full"
+277	                        onClick={() => void handleCopyShareLink()}
+278	                      >
+279	                        <Link2 className="h-4 w-4 shrink-0" aria-hidden />
+280	                        {shareLinkFeedback === 'copied' ? 'Link copied' : 'Copy view-only link'}
+281	                      </Button>
+282	                    )}
+283	                  </div>
+284	                </div>
+285	                <PresentationModeOverlay
+286	                  open={presentationOpen}
+287	                  onOpenChange={setPresentationOpen}
+288	                  screens={presentationScreens}
+289	                  fileName={fileName}
+290	                />
+291	                <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+292	                  <ScreenGrid
+293	                    screens={orderedScreens}
+294	                    activePage={activePage}
+295	                    figmaPages={pages}
+296	                    onFigmaPageChange={setActivePage}
+297	                    fileName={fileName}
+298	                    screenCount={screens.length}
+299	                    shareViewer={isShareViewer}
+300	                    layoutReadOnly={isShareViewer}
+301	                    onPersistScreenOrder={isShareViewer ? undefined : persistScreenOrder}
+302	                  />
+303	                </div>
+304	              </div>
+305	            )}
+306	            {appSection === 'account' && <AccountPage fileName={fileName} fileKey={fileKey} />}
+307	            {appSection === 'analytics' && <AnalyticsPage />}
+308	          </div>
+309	        </div>
+310	      </AppShell>
+311	    </>
+312	  );
+313	}
+314	
+315	export default function App() {
+316	  const {
+317	    load,
+318	    loading,
+319	    error,
+320	    screens,
+321	    fileName,
+322	    fileKey,
+323	    progress,
+324	    reset,
+325	    loadSessionId,
+326	  } = useFigmaFile();
+327	
+328	  const shareParams = useMemo(() => readShareParamsFromLocation(), []);
+329	  const isShareViewer = Boolean(shareParams);
+330	  const setupFileUrl =
+331	    isShareViewer && shareParams ? buildMinimalFigmaDesignUrl(shareParams.fileKey) : undefined;
+332	
+333	  useEffect(() => {
+334	    if (!shareParams || screens.length > 0 || loading) return;
+335	    const token = localStorage.getItem(TOKEN_KEY)?.trim();
+336	    if (!token) return;
+337	    void load({
+338	      token,
+339	      fileKey: shareParams.fileKey,
+340	      rawUrl: buildMinimalFigmaDesignUrl(shareParams.fileKey),
+341	    });
+342	  }, [shareParams, screens.length, loading, load]);
+343	
+344	  const shareBootstrapOrder =
+345	    shareParams && fileKey === shareParams.fileKey ? shareParams.order : null;
+346	
+347	  if (screens.length > 0) {
+348	    return (
+349	      <FigviewApp
+350	        key={`${fileKey}:${loadSessionId}`}
+351	        screens={screens}
+352	        fileName={fileName}
+353	        fileKey={fileKey}
+354	        loading={loading}
+355	        progress={progress}
+356	        error={error}
+357	        load={load}
+358	        reset={reset}
+359	        shareBootstrapOrder={shareBootstrapOrder}
+360	        isShareViewer={isShareViewer}
+361	      />
+362	    );
+363	  }
+364	
+365	  return (
+366	    <>
+367	      {loading && <Loader message={progress || 'Loading…'} />}
+368	      <Setup
+369	        onLoad={load}
+370	        loading={loading}
+371	        error={error}
+372	        progress={progress}
+373	        fileName={fileName}
+374	        initialFileUrl={setupFileUrl}
+375	      />
+376	    </>
+377	  );
+378	}
+379
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:25Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/types.ts`
+
+```text
+1	export interface FigmaNode {
+2	  id: string;
+3	  name: string;
+4	  type: string;
+5	  children?: FigmaNode[];
+6	  // Provided by the Figma file API for nodes; used to classify mobile vs desktop.
+7	  absoluteBoundingBox?: {
+8	    x: number;
+9	    y: number;
+10	    width: number;
+11	    height: number;
+12	  };
+13	}
+14	
+15	export interface FigmaPage {
+16	  id: string;
+17	  name: string;
+18	  type: 'CANVAS';
+19	  children: FigmaNode[];
+20	}
+21	
+22	export interface FigmaFileResponse {
+23	  name: string;
+24	  document: {
+25	    id: string;
+26	    name: string;
+27	    type: 'DOCUMENT';
+28	    children: FigmaPage[];
+29	  };
+30	  thumbnailUrl?: string;
+31	}
+32	
+33	export interface FigmaImagesResponse {
+34	  images: Record<string, string>; // nodeId -> image URL
+35	}
+36	
+37	export interface ScreenFrame {
+38	  id: string;
+39	  name: string;
+40	  pageId: string;
+41	  pageName: string;
+42	  thumbnailUrl?: string;
+43	  protoUrl: string;
+44	  kind: 'mobile' | 'desktop';
+45	}
+46	
+47	export interface FigmaConfig {
+48	  token: string;
+49	  fileKey: string;
+50	  protoFileKey?: string; // may differ from design file key
+51	  rawUrl: string;
+52	}
+53
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:31Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/hooks/useFigmaFile.ts`
+
+```text
+1	import { useState, useCallback } from 'react';
+2	import { fetchFile, fetchImages, buildProtoUrl } from '../lib/figma';
+3	import {
+4	  isLikelyPrototypeScreen,
+5	  shouldSkipPrototypeIndexingPage,
+6	} from '../lib/prototypeFrames';
+7	import { recordRecentDesign } from '../lib/recentDesigns';
+8	import type { ScreenFrame, FigmaConfig } from '../types';
+9	
+10	function inferKind(name: string, width?: number, height?: number): 'mobile' | 'desktop' {
+11	  if (typeof width === 'number' && typeof height === 'number' && width > 0 && height > 0) {
+12	    // Portrait-ish frames are treated as "mobile".
+13	    if (height >= width * 1.05) return 'mobile';
+14	    return 'desktop';
+15	  }
+16	
+17	  const n = name.toLowerCase();
+18	  if (/(iphone|ipad|android|mobile|phone|samsung|pixel|galaxy|iphone|ios)/i.test(n)) return 'mobile';
+19	  return 'desktop';
+20	}
+21	
+22	interface State {
+23	  loading: boolean;
+24	  error: string | null;
+25	  fileName: string;
+26	  fileKey: string;
+27	  screens: ScreenFrame[];
+28	  progress: string;
+29	  /** Increments on each successful load (screens may be non-empty). Used to gate one-shot UI like post-load modals. */
+30	  loadSessionId: number;
+31	}
+32	
+33	export function useFigmaFile() {
+34	  const [state, setState] = useState<State>({
+35	    loading: false,
+36	    error: null,
+37	    fileName: '',
+38	    fileKey: '',
+39	    screens: [],
+40	    progress: '',
+41	    loadSessionId: 0,
+42	  });
+43	
+44	  const load = useCallback(async (config: FigmaConfig): Promise<boolean> => {
+45	    setState(s => ({
+46	      ...s,
+47	      loading: true,
+48	      error: null,
+49	      progress: 'Fetching file…',
+50	    }));
+51	
+52	    try {
+53	      const file = await fetchFile(config.fileKey, config.token);
+54	
+55	      // Collect all top-level FRAME nodes across all pages
+56	      const frames: Array<{
+57	        id: string;
+58	        name: string;
+59	        pageId: string;
+60	        pageName: string;
+61	        width?: number;
+62	        height?: number;
+63	      }> = [];
+64	      for (const page of file.document.children) {
+65	        if (shouldSkipPrototypeIndexingPage(page.name)) {
+66	          continue;
+67	        }
+68	
+69	        for (const node of page.children ?? []) {
+70	          if (node.type !== 'FRAME' && node.type !== 'COMPONENT') continue;
+71	
+72	          const width = node.absoluteBoundingBox?.width;
+73	          const height = node.absoluteBoundingBox?.height;
+74	
+75	          if (!isLikelyPrototypeScreen(width, height)) {
+76	            continue;
+77	          }
+78	
+79	          frames.push({
+80	            id: node.id,
+81	            name: node.name,
+82	            pageId: page.id,
+83	            pageName: page.name,
+84	            width,
+85	            height,
+86	          });
+87	        }
+88	      }
+89	
+90	      if (frames.length === 0) {
+91	        throw new Error(
+92	          'No prototype-sized screens found. Library or component-only pages are skipped. Add top-level frames that look like phone, tablet, or desktop screens (not small UI tiles).'
+93	        );
+94	      }
+95	
+96	      setState(s => ({
+97	        ...s,
+98	        progress: `Loading thumbnails for ${frames.length} screens…`,
+99	      }));
+100	
+101	      // Figma limits image requests; batch in chunks of 50
+102	      const CHUNK = 50;
+103	      const imageMap: Record<string, string> = {};
+104	      for (let i = 0; i < frames.length; i += CHUNK) {
+105	        const chunk = frames.slice(i, i + CHUNK);
+106	        const ids = chunk.map(f => f.id);
+107	        const result = await fetchImages(config.fileKey, ids, config.token, 1);
+108	        Object.assign(imageMap, result.images);
+109	        setState(s => ({
+110	          ...s,
+111	          progress: `Loading thumbnails… ${Math.min(i + CHUNK, frames.length)}/${frames.length}`,
+112	        }));
+113	      }
+114	
+115	      const screens: ScreenFrame[] = frames.map(f => ({
+116	        id: f.id,
+117	        name: f.name,
+118	        pageId: f.pageId,
+119	        pageName: f.pageName,
+120	        thumbnailUrl: imageMap[f.id] ?? undefined,
+121	        protoUrl: buildProtoUrl(config.fileKey, f.id, file.name),
+122	        kind: inferKind(f.name, f.width, f.height),
+123	      }));
+124	
+125	      const thumb = file.thumbnailUrl ?? screens[0]?.thumbnailUrl ?? null;
+126	      recordRecentDesign({
+127	        fileKey: config.fileKey,
+128	        fileName: file.name,
+129	        rawUrl: config.rawUrl,
+130	        thumbnailUrl: thumb ?? null,
+131	      });
+132	
+133	      setState(s => ({
+134	        loading: false,
+135	        error: null,
+136	        fileName: file.name,
+137	        fileKey: config.fileKey,
+138	        screens,
+139	        progress: '',
+140	        loadSessionId: s.loadSessionId + 1,
+141	      }));
+142	      return true;
+143	    } catch (e: unknown) {
+144	      setState(s => ({
+145	        ...s,
+146	        loading: false,
+147	        error: e instanceof Error ? e.message : 'Unknown error',
+148	        progress: '',
+149	      }));
+150	      return false;
+151	    }
+152	  }, []);
+153	
+154	  const reset = useCallback(() => {
+155	    setState({
+156	      loading: false,
+157	      error: null,
+158	      fileName: '',
+159	      fileKey: '',
+160	      screens: [],
+161	      progress: '',
+162	      loadSessionId: 0,
+163	    });
+164	  }, []);
+165	
+166	  return { ...state, load, reset };
+167	}
+168
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:31Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/components/AppShell.tsx`
+
+```text
+1	import type { ReactNode } from 'react';
+2	import {
+3	  BarChart3,
+4	  LayoutDashboard,
+5	  LayoutGrid,
+6	  Layers,
+7	  Plus,
+8	  UserRound,
+9	  type LucideIcon,
+10	} from 'lucide-react';
+11	import { Button } from '@/components/ui/button';
+12	import { Separator } from '@/components/ui/separator';
+13	import { cn } from '@/lib/utils';
+14	import { sanitizePageNavLabel } from '@/lib/pageNavLabel';
+15	
+16	export type AppSection = 'dashboard' | 'designs' | 'account' | 'analytics';
+17	
+18	interface Props {
+19	  activeSection: AppSection;
+20	  onSectionChange: (section: AppSection) => void;
+21	  screenCount: number;
+22	  /** Figma page list — only used when section is `designs` and the page nav is visible. */
+23	  pages: string[];
+24	  activePage: string;
+25	  onPageChange: (pageId: string) => void;
+26	  onNewFile: () => void;
+27	  children: ReactNode;
+28	  className?: string;
+29	  /**
+30	   * When set, controls whether the sidebar “Pages” block appears.
+31	   * Omit to use default: Designs section with at least one screen.
+32	   */
+33	  figmaPageNavVisible?: boolean;
+34	  /** View-only share links: slim sidebar, no account/dashboard or new file. */
+35	  shareViewer?: boolean;
+36	}
+37	
+38	const navItems: { id: AppSection; label: string; icon: LucideIcon }[] = [
+39	  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+40	  { id: 'designs', label: 'Designs', icon: LayoutGrid },
+41	  { id: 'account', label: 'Account', icon: UserRound },
+42	  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+43	];
+44	
+45	export function AppShell({
+46	  activeSection,
+47	  onSectionChange,
+48	  screenCount,
+49	  pages,
+50	  activePage,
+51	  onPageChange,
+52	  onNewFile,
+53	  children,
+54	  className,
+55	  figmaPageNavVisible,
+56	  shareViewer = false,
+57	}: Props) {
+58	  const showPageNav =
+59	    figmaPageNavVisible !== undefined
+60	      ? figmaPageNavVisible
+61	      : activeSection === 'designs' && screenCount > 0;
+62	
+63	  const nav = shareViewer
+64	    ? navItems.filter(i => i.id === 'designs')
+65	    : navItems;
+66	
+67	  /** Reveal text when sidebar is hovered or contains focus (expanded rail). */
+68	  const sidebarTextReveal =
+69	    'max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-200 ease-out group-hover/sidebar:max-w-[14rem] group-hover/sidebar:opacity-100 group-focus-within/sidebar:max-w-[14rem] group-focus-within/sidebar:opacity-100';
+70	
+71	  return (
+72	    <div className={cn('flex h-dvh min-h-0 overflow-hidden bg-background', className)}>
+73	      <aside className="group/sidebar relative z-20 flex h-full min-h-0 w-16 shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-border bg-card py-6 pl-2 pr-2 transition-[width,padding] duration-200 ease-out hover:w-[260px] hover:px-4 focus-within:w-[260px] focus-within:px-4">
+74	        <div className="flex shrink-0 items-center justify-center gap-2 px-1 group-hover/sidebar:justify-start group-hover/sidebar:px-0">
+75	          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+76	            <Layers className="h-4 w-4" />
+77	          </div>
+78	          <span className={cn('text-lg font-semibold tracking-tight', sidebarTextReveal)}>Figview</span>
+79	        </div>
+80	
+81	        <Separator className="my-6 shrink-0" />
+82	
+83	        <nav className="min-h-0 shrink-0 px-1 group-hover/sidebar:px-0" aria-label="Main">
+84	          <p
+85	            className={cn(
+86	              'mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground',
+87	              'max-h-0 overflow-hidden opacity-0 transition-[max-height,opacity,margin] duration-200 ease-out',
+88	              'group-hover/sidebar:mb-2 group-hover/sidebar:max-h-8 group-hover/sidebar:opacity-100',
+89	              'group-focus-within/sidebar:mb-2 group-focus-within/sidebar:max-h-8 group-focus-within/sidebar:opacity-100'
+90	            )}
+91	          >
+92	            {shareViewer ? 'View' : 'App'}
+93	          </p>
+94	          <ul className="flex flex-col gap-0.5">
+95	            {nav.map(({ id, label, icon: Icon }) => {
+96	              const active = activeSection === id;
+97	              return (
+98	                <li key={id} className="w-full min-w-0">
+99	                  <button
+100	                    type="button"
+101	                    title={label}
+102	                    aria-label={label}
+103	                    onClick={() => onSectionChange(id)}
+104	                    className={cn(
+105	                      'flex w-full min-w-0 items-center gap-2 rounded-lg py-2 text-left text-sm font-medium transition-colors',
+106	                      'justify-center px-2 group-hover/sidebar:justify-start group-hover/sidebar:px-3',
+107	                      'group-focus-within/sidebar:justify-start group-focus-within/sidebar:px-3',
+108	                      active
+109	                        ? 'bg-muted text-foreground'
+110	                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+111	                    )}
+112	                  >
+113	                    <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+114	                    <span className={cn('min-w-0', sidebarTextReveal)}>{label}</span>
+115	                  </button>
+116	                </li>
+117	              );
+118	            })}
+119	          </ul>
+120	        </nav>
+121	
+122	        {showPageNav && (
+123	          <>
+124	            <Separator
+125	              className={cn(
+126	                'my-4 shrink-0 transition-opacity duration-200',
+127	                'opacity-0 group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100'
+128	              )}
+129	            />
+130	            <nav
+131	              className={cn(
+132	                'min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 transition-[opacity,max-height] duration-200 ease-out',
+133	                'max-h-0 opacity-0 group-hover/sidebar:max-h-[min(60vh,28rem)] group-hover/sidebar:opacity-100 group-hover/sidebar:px-0',
+134	                'group-focus-within/sidebar:max-h-[min(60vh,28rem)] group-focus-within/sidebar:opacity-100 group-focus-within/sidebar:px-0'
+135	              )}
+136	              aria-label="Figma pages"
+137	            >
+138	              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Pages</p>
+139	              <ul className="flex flex-col gap-0.5">
+140	                <li>
+141	                  <button
+142	                    type="button"
+143	                    onClick={() => onPageChange('__all__')}
+144	                    className={cn(
+145	                      'w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors',
+146	                      activePage === '__all__'
+147	                        ? 'bg-muted text-foreground'
+148	                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+149	                    )}
+150	                  >
+151	                    All pages
+152	                  </button>
+153	                </li>
+154	                {pages.map(pageId => {
+155	                  const label = sanitizePageNavLabel(pageId) || pageId;
+156	                  return (
+157	                    <li key={pageId}>
+158	                      <button
+159	                        type="button"
+160	                        onClick={() => onPageChange(pageId)}
+161	                        title={pageId}
+162	                        className={cn(
+163	                          'w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors',
+164	                          activePage === pageId
+165	                            ? 'bg-muted text-foreground'
+166	                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+167	                        )}
+168	                      >
+169	                        <span className="line-clamp-2">{label}</span>
+170	                      </button>
+171	                    </li>
+172	                  );
+173	                })}
+174	              </ul>
+175	            </nav>
+176	          </>
+177	        )}
+178	
+179	        {!showPageNav && <div className="min-h-0 flex-1" />}
+180	
+181	        <div className="min-w-0 shrink-0 space-y-3 overflow-x-hidden px-2 pb-2">
+182	          {!shareViewer && (
+183	            <Button
+184	              variant="outline"
+185	              type="button"
+186	              aria-label="New file"
+187	              title="New file"
+188	              className={cn(
+189	                'h-10 shrink-0 overflow-hidden rounded-xl transition-[width,gap,padding] duration-200 ease-out',
+190	                'w-10 min-w-10 max-w-10 justify-center gap-0 px-0',
+191	                'group-hover/sidebar:w-full group-hover/sidebar:max-w-none group-hover/sidebar:min-w-0 group-hover/sidebar:justify-start group-hover/sidebar:gap-2 group-hover/sidebar:px-4',
+192	                'group-focus-within/sidebar:w-full group-focus-within/sidebar:max-w-none group-focus-within/sidebar:min-w-0 group-focus-within/sidebar:justify-start group-focus-within/sidebar:gap-2 group-focus-within/sidebar:px-4'
+193	              )}
+194	              onClick={onNewFile}
+195	            >
+196	              <Plus className="h-4 w-4 shrink-0" />
+197	              <span className={cn('min-w-0 shrink', sidebarTextReveal)}>New file</span>
+198	            </Button>
+199	          )}
+200	        </div>
+201	      </aside>
+202	
+203	      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
+204	    </div>
+205	  );
+206	}
+207
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:39Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/lib/prototypeFrames.ts`
+
+```text
+1	/**
+2	 * Heuristics to skip Figma library / token pages and tiny non-screen frames
+3	 * so only real mobile or web-sized prototype frames are indexed.
+4	 */
+5	
+6	/** Normalize page title for name-based matching (strip emoji, collapse space). */
+7	export function normalizePageTitleForMatch(name: string): string {
+8	  return name
+9	    .replace(/\p{Extended_Pictographic}+/gu, '')
+10	    .replace(/\s{2,}/g, ' ')
+11	    .trim()
+12	    .toLowerCase();
+13	}
+14	
+15	/**
+16	 * Skip whole canvases that are almost always component libraries, not flows.
+17	 * Does not replace dimension checks — used as an extra guard.
+18	 */
+19	export function shouldSkipPrototypeIndexingPage(pageName: string): boolean {
+20	  const n = normalizePageTitleForMatch(pageName);
+21	  if (!n) return false;
+22	
+23	  const patterns: RegExp[] = [
+24	    /\bcomponents?\b/,
+25	    /\bui[\s_-]*kit\b/,
+26	    /\buikit\b/,
+27	    /\bdesign[\s_-]*system\b/,
+28	    /\bstyle[\s_-]*guide\b/,
+29	    /\bfoundations?\b/,
+30	    /\bds[\s_-]/, // "DS — …"
+31	    /^ds\b/,
+32	    /\bsymbols?\b/,
+33	    /\blibraries?\b/,
+34	    /\bicon(s|\s+set)?\b/,
+35	    /\btokens?\b/,
+36	    /\bsticker\b/,
+37	    /\bassets?\s*only\b/,
+38	    /\bpatterns?\s*only\b/,
+39	  ];
+40	
+41	  return patterns.some(re => re.test(n));
+42	}
+43	
+44	/**
+45	 * True if width/height look like a phone, tablet, or desktop/web artboard — not a chip, token, or strip.
+46	 */
+47	export function isLikelyPrototypeScreen(width?: number, height?: number): boolean {
+48	  if (
+49	    typeof width !== 'number' ||
+50	    typeof height !== 'number' ||
+51	    !Number.isFinite(width) ||
+52	    !Number.isFinite(height) ||
+53	    width <= 0 ||
+54	    height <= 0
+55	  ) {
+56	    return false;
+57	  }
+58	
+59	  const minSide = Math.min(width, height);
+60	  const maxSide = Math.max(width, height);
+61	  const area = width * height;
+62	  const ratio = maxSide / minSide;
+63	
+64	  // Long strips / odd chrome — not a screen
+65	  if (ratio > 2.75) return false;
+66	
+67	  const isPortrait = height >= width * 1.06;
+68	  const isLandscape = width >= height * 1.06;
+69	
+70	  if (isPortrait) {
+71	    // Mobile / tablet portrait (roughly ≥ phone size)
+72	    return minSide >= 280 && maxSide >= 560 && area >= 220_000;
+73	  }
+74	  if (isLandscape) {
+75	    // Desktop / tablet landscape
+76	    return minSide >= 500 && maxSide >= 640 && area >= 380_000;
+77	  }
+78	
+79	  // Nearly square: only if clearly a large canvas (e.g. some tablets)
+80	  return minSide >= 600 && area >= 500_000;
+81	}
+82
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:40Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/lib/recentDesigns.ts`
+
+```text
+1	const STORAGE_KEY = 'figview:recent-designs';
+2	const MAX_ITEMS = 12;
+3	
+4	export interface RecentDesignRecord {
+5	  fileKey: string;
+6	  fileName: string;
+7	  rawUrl: string;
+8	  thumbnailUrl: string | null;
+9	  viewedAt: string;
+10	}
+11	
+12	function isRecentDesignRecord(x: unknown): x is RecentDesignRecord {
+13	  if (x === null || typeof x !== 'object') return false;
+14	  const r = x as Record<string, unknown>;
+15	  return (
+16	    typeof r.fileKey === 'string' &&
+17	    typeof r.fileName === 'string' &&
+18	    typeof r.rawUrl === 'string' &&
+19	    (r.thumbnailUrl === null || typeof r.thumbnailUrl === 'string') &&
+20	    typeof r.viewedAt === 'string'
+21	  );
+22	}
+23	
+24	/** Keep first occurrence per fileKey (storage should already be unique; this guards corrupt duplicates). */
+25	function dedupeByFileKey(items: RecentDesignRecord[]): RecentDesignRecord[] {
+26	  const seen = new Set<string>();
+27	  const out: RecentDesignRecord[] = [];
+28	  for (const item of items) {
+29	    if (seen.has(item.fileKey)) continue;
+30	    seen.add(item.fileKey);
+31	    out.push(item);
+32	  }
+33	  return out;
+34	}
+35	
+36	export function getRecentDesigns(): RecentDesignRecord[] {
+37	  try {
+38	    const raw = localStorage.getItem(STORAGE_KEY);
+39	    if (!raw) return [];
+40	    const parsed: unknown = JSON.parse(raw);
+41	    if (!Array.isArray(parsed)) return [];
+42	    return dedupeByFileKey(parsed.filter(isRecentDesignRecord));
+43	  } catch {
+44	    return [];
+45	  }
+46	}
+47	
+48	export function recordRecentDesign(
+49	  entry: Omit<RecentDesignRecord, 'viewedAt'> & { viewedAt?: string }
+50	): void {
+51	  const viewedAt = entry.viewedAt ?? new Date().toISOString();
+52	  const prev = getRecentDesigns();
+53	  const others = prev.filter(p => p.fileKey !== entry.fileKey);
+54	  const next: RecentDesignRecord[] = [
+55	    {
+56	      fileKey: entry.fileKey,
+57	      fileName: entry.fileName,
+58	      rawUrl: entry.rawUrl,
+59	      thumbnailUrl: entry.thumbnailUrl,
+60	      viewedAt,
+61	    },
+62	    ...others,
+63	  ].slice(0, MAX_ITEMS);
+64	  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+65	  window.dispatchEvent(new CustomEvent('figview:recent-changed'));
+66	}
+67	
+68	export function removeRecentDesign(fileKey: string): void {
+69	  const prev = getRecentDesigns();
+70	  const next = prev.filter(p => p.fileKey !== fileKey);
+71	  if (next.length === prev.length) return;
+72	  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+73	  window.dispatchEvent(new CustomEvent('figview:recent-changed'));
+74	}
+75	
+76	/** Web Share API with clipboard / execCommand fallbacks (same behavior as recent-design cards). */
+77	export async function shareRecentDesign(entry: RecentDesignRecord): Promise<void> {
+78	  const url = entry.rawUrl;
+79	  const title = entry.fileName;
+80	
+81	  if (navigator.share) {
+82	    try {
+83	      await navigator.share({ title, url });
+84	      return;
+85	    } catch {
+86	      // User cancel/unsupported is fine; fall back to clipboard below.
+87	    }
+88	  }
+89	
+90	  if (navigator.clipboard?.writeText) {
+91	    try {
+92	      await navigator.clipboard.writeText(url);
+93	      return;
+94	    } catch {
+95	      // Fall through to legacy copy below.
+96	    }
+97	  }
+98	
+99	  const ta = document.createElement('textarea');
+100	  ta.value = url;
+101	  ta.setAttribute('readonly', 'true');
+102	  ta.style.position = 'absolute';
+103	  ta.style.left = '-9999px';
+104	  document.body.appendChild(ta);
+105	  ta.select();
+106	  document.execCommand('copy');
+107	  document.body.removeChild(ta);
+108	}
+109
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:45Z)**_
+
+The existing CLAUDE.md is already quite thorough. Let me check a few more things before suggesting additions.
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:47Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/components/ScreenGrid.tsx`
+
+```text
+1	import { useState, useMemo, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+2	import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+3	import { Focus, LayoutGrid, Search } from 'lucide-react';
+4	import { FigmaPagesSideNav } from './FigmaPagesSideNav';
+5	import { ScreenCard } from './ScreenCard';
+6	import { ScreenFilmstrip } from './ScreenFilmstrip';
+7	import { SingleScreenStage } from './SingleScreenStage';
+8	import type { ScreenFrame } from '../types';
+9	import { Input } from '@/components/ui/input';
+10	import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+11	import { sanitizePageNavLabel } from '@/lib/pageNavLabel';
+12	import { moveIndexInArray, reorderGlobalFromFilteredMove } from '@/lib/screenLayout';
+13	import { cn } from '@/lib/utils';
+14	
+15	type GridPointerDrag = {
+16	  pointerId: number;
+17	  screenId: string;
+18	  sourceIndex: number;
+19	  overIndex: number;
+20	  offsetX: number;
+21	  offsetY: number;
+22	  floatW: number;
+23	  floatH: number;
+24	  clientX: number;
+25	  clientY: number;
+26	  screen: ScreenFrame;
+27	  filterSigAtStart: string;
+28	  origin: 'grid' | 'filmstrip';
+29	};
+30	
+31	function hitPreviewSlotIndex(
+32	  clientX: number,
+33	  clientY: number,
+34	  preview: ScreenFrame[],
+35	  refs: Record<string, HTMLElement | null>
+36	): number {
+37	  for (let i = 0; i < preview.length; i++) {
+38	    const el = refs[preview[i].id];
+39	    if (!el) continue;
+40	    const r = el.getBoundingClientRect();
+41	    const m = 8;
+42	    if (
+43	      clientX >= r.left - m &&
+44	      clientX <= r.right + m &&
+45	      clientY >= r.top - m &&
+46	      clientY <= r.bottom + m
+47	    ) {
+48	      return i;
+49	    }
+50	  }
+51	  let best = 0;
+52	  let bestD = Infinity;
+53	  for (let i = 0; i < preview.length; i++) {
+54	    const el = refs[preview[i].id];
+55	    if (!el) continue;
+56	    const r = el.getBoundingClientRect();
+57	    const cx = (r.left + r.right) / 2;
+58	    const cy = (r.top + r.bottom) / 2;
+59	    const dist = (clientX - cx) ** 2 + (clientY - cy) ** 2;
+60	    if (dist < bestD) {
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:47Z)**_
+
+<tool-use data-tool-type="search" data-tool-name="Glob"><details>
+<summary>Tool use: **Glob**</summary>
+ path `./` pattern `src/components/ui/*.tsx`
+
+```text
+src/components/ui/card.tsx
+src/components/ui/separator.tsx
+src/components/ui/tabs.tsx
+src/components/ui/button.tsx
+src/components/ui/badge.tsx
+src/components/ui/input.tsx
+src/components/ui/label.tsx
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:53Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/components/ui/button.tsx`
+
+```text
+1	import * as React from 'react';
+2	import { Slot } from '@radix-ui/react-slot';
+3	import { cva, type VariantProps } from 'class-variance-authority';
+4	import { cn } from '@/lib/utils';
+5	
+6	const buttonVariants = cva(
+7	  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+8	  {
+9	    variants: {
+10	      variant: {
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:05:54Z)**_
+
+<tool-use data-tool-type="read" data-tool-name="Read"><details>
+<summary>Tool use: **Read**</summary>
+ `./src/lib/screenLayout.ts`
+
+```text
+1	import type { ScreenFrame } from '@/types';
+2	
+3	const storageKey = (fileKey: string) => `figview:screen-order:${fileKey}`;
+4	
+5	export function readStoredScreenOrder(fileKey: string): string[] | null {
+6	  try {
+7	    const raw = localStorage.getItem(storageKey(fileKey));
+8	    if (!raw) return null;
+9	    const parsed = JSON.parse(raw) as unknown;
+10	    if (!Array.isArray(parsed) || !parsed.every((x): x is string => typeof x === 'string')) {
+11	      return null;
+12	    }
+13	    return parsed;
+14	  } catch {
+15	    return null;
+16	  }
+17	}
+18	
+19	export function writeStoredScreenOrder(fileKey: string, ids: string[]): void {
+20	  try {
+21	    localStorage.setItem(storageKey(fileKey), JSON.stringify(ids));
+22	  } catch {
+23	    /* quota / private mode */
+24	  }
+25	}
+26	
+27	/** Merge a preferred id list with current screens: keep known order, append new frames. */
+28	export function mergeOrderWithScreens(order: string[] | null | undefined, screens: ScreenFrame[]): string[] {
+29	  const byId = new Map(screens.map(s => [s.id, s]));
+30	  const seen = new Set<string>();
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:06:03Z)**_
+
+The existing CLAUDE.md is well-written and accurate. Here are a few additions worth making:
+
+1. The `figview:recent-designs` localStorage key is missing from the storage table
+2. The `figview:recent-changed` custom event (dispatched on mutations to recent designs) is undocumented
+3. The UI components in `src/components/ui/` are shadcn/ui primitives (Radix-based with CVA)
+4. Screen filtering heuristics in `src/lib/prototypeFrames.ts` are non-obvious
+5. The `@/` alias maps to `src/`
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:06:37Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file /Users/kutajbaba/ShipwithAI/figview/CLAUDE.md has been updated successfully.
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:06:44Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file /Users/kutajbaba/ShipwithAI/figview/CLAUDE.md has been updated successfully.
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:06:54Z)**_
+
+<tool-use data-tool-type="write" data-tool-name="Edit"><details>
+<summary>Tool use: **Edit**</summary>
+
+```text
+The file /Users/kutajbaba/ShipwithAI/figview/CLAUDE.md has been updated successfully.
+```
+</details></tool-use>
+
+_**Agent (claude-sonnet-4-6 2026-04-03 21:07:01Z)**_
+
+The CLAUDE.md now includes:
+
+- `figview:recent-designs` in the storage table
+- `figview:recent-changed` custom event documentation
+- Screen filtering heuristics section explaining the two-stage filter (page name patterns + frame dimension checks)
+- UI primitives section clarifying the shadcn/ui + `@/` alias setup

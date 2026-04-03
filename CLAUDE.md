@@ -36,10 +36,11 @@ The **designs** section has two phases (`DesignsPhase`): `browse` (shows `Design
 |---|---|---|
 | `figview:token` | `localStorage` | Figma PAT |
 | `figview:screen-order:{fileKey}` | `localStorage` | Persisted drag-reorder for each file |
+| `figview:recent-designs` | `localStorage` | Array of `RecentDesignRecord` (max 12, newest first) |
 | `figview:post-load-seen` | `sessionStorage` | Whether the post-load modal has shown this tab |
 | `figview:post-load-pref` | `sessionStorage` | Last section choice (`designs` \| `explore`) |
 
-All storage keys and helpers live in `src/lib/figviewStorageKeys.ts`; screen-order helpers are in `src/lib/screenLayout.ts`.
+All storage keys and helpers live in `src/lib/figviewStorageKeys.ts`; screen-order helpers are in `src/lib/screenLayout.ts`. Mutations to recent-designs fire a `figview:recent-changed` `CustomEvent` on `window` so listeners can refresh without polling.
 
 ### Share links
 
@@ -54,6 +55,14 @@ https://www.figma.com/proto/{fileKey}/{slug}?node-id={nodeId}&scaling=contain&hi
 ```
 
 Node IDs from the API use `:` (e.g. `1:23`) — these must be replaced with `-` for prototype URLs.
+
+### Screen filtering heuristics
+
+`useFigmaFile` skips pages whose names match library/token patterns (see `shouldSkipPrototypeIndexingPage` in `src/lib/prototypeFrames.ts`) and filters individual frames via `isLikelyPrototypeScreen`, which rejects frames that are too small, too large in aspect ratio (> 2.75:1), or don't meet minimum area thresholds for portrait/landscape/square orientations.
+
+### UI primitives
+
+`src/components/ui/` contains shadcn/ui primitives (Radix UI + class-variance-authority). Import them via the `@/` alias (maps to `src/`): `import { Button } from '@/components/ui/button'`. Do not add new shadcn components without also adding their Radix peer dependency.
 
 ### Styling
 
