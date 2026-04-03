@@ -34,7 +34,7 @@ export function Setup({ onLoad, loading, error, progress, fileName, initialFileU
         </Button>
       </header>
 
-      <div className="relative z-20 mx-auto w-full max-w-6xl px-6 pb-24 pt-12 sm:px-8">
+      <div className="relative z-20 mx-auto w-fit max-w-6xl px-6 pb-24 pt-12 sm:px-8">
         <MarketingHero fileName={fileName || undefined} />
         <LoadFileFormCard
           onLoad={onLoad}
