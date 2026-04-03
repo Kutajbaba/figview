@@ -1,0 +1,109 @@
+# CSS style changes for components
+_Exported on 03/04/2026 at 19:48:04 GMT+1 from Cursor (3.0.9)_
+
+---
+
+**User**
+
+Apply these CSS style changes to the codebase. These changes were made in a browser preview and need to be persisted to the source files:
+
+
+--- Change 1 ---
+Element: <HomeMarketingShell className="min-h-screen" children={[React Element],[React Element]}>
+[CSS_CHANGE]: {
+  "property": "font-family",
+  "oldValue": "\"IBM Plex Mono\", ui-monospace, monospace",
+  "newValue": "\"SF Compact Rounded\", sans-serif",
+  "changeType": "style",
+  "selector": "<HomeMarketingShell> div.relative",
+  "elementId": null,
+  "elementClasses": "relative overflow-hidden bg-gradient-to-b from-[#FDF8F1] via-[#FAF4EC] to-[#F3EBE0] text-[#1c1917] min-h-screen",
+  "elementTagName": "div",
+  "elementAttributes": [],
+  "reactComponent": {
+    "name": "HomeMarketingShell",
+    "props": {
+      "className": "min-h-screen",
+      "children": [
+        "[React Element]",
+        "[React Element]"
+      ]
+    }
+  }
+}
+
+--- Change 2 ---
+Element: <MarketingHero fileName={null}>
+[CSS_CHANGE]: {
+  "property": "font-family",
+  "oldValue": "\"IBM Plex Mono\", ui-monospace, monospace",
+  "newValue": "\"SF Pro Display\", -apple-system, BlinkMacSystemFont, sans-serif",
+  "changeType": "style",
+  "selector": "<MarketingHero> h1.font-ibmPlexMono",
+  "elementId": null,
+  "elementClasses": "font-ibmPlexMono text-balance text-4xl font-bold tracking-tight text-stone-900 sm:text-[56px] sm:leading-[1.1]",
+  "elementTagName": "h1",
+  "elementAttributes": [],
+  "reactComponent": {
+    "name": "MarketingHero",
+    "props": {}
+  }
+}
+
+CRITICAL - Element Identification:
+- Use the "selector" field to find the target element (contains CSS selector like "#id", ".class", or tag)
+- "elementPath" contains the DOM path (e.g., "html > body > div > ...") - use to understand element hierarchy
+- "elementHTML" shows the element's HTML structure for verification
+- "elementClasses" lists all CSS classes on the element - search for these in stylesheets
+- If "elementReactComponent" is provided, the component name (e.g., "Button", "Card") indicates where to look
+
+CRITICAL - Where to Make Changes:
+1. First check if the element uses utility classes (Tailwind, Bootstrap): modify the className/class attribute in JSX/TSX
+2. For CSS Modules (*.module.css): find the imported module and update the corresponding class
+3. For styled-components/emotion: find the styled() or css`` definition in the component file
+4. For global CSS/SCSS: locate the stylesheet imported by the component or in global styles
+5. For inline styles: update the style prop directly in the JSX/TSX file
+
+CRITICAL - Making the Actual Change:
+- "property" is the CSS property name (e.g., "color", "padding", "font-size")
+- "oldValue" is the current value - use this to locate the exact line to change
+- "newValue" is what it should be changed to
+- Preserve CSS units and format (e.g., if oldValue was "16px", keep pixel units unless converting to rem/em)
+
+For CSS Style Changes:
+1. Search for the element using "selector" or "elementClasses" to find relevant stylesheets
+2. Find the exact CSS rule containing "property: oldValue"
+3. Replace "oldValue" with "newValue"
+4. If no existing rule exists, add a new declaration to the appropriate CSS file or inline style
+5. For Tailwind: convert the CSS property/value to the appropriate utility class (e.g., "padding: 16px" → "p-4")
+6. Ensure specificity is maintained - don't accidentally override other rules
+
+---
+
+**Cursor**
+
+Locating `HomeMarketingShell` and `MarketingHero` to apply the font-family changes.
+
+
+
+Adding the two font families to the Tailwind config and applying the corresponding utility classes in the components.
+
+
+
+Here’s what was persisted:
+
+### 1. `HomeMarketingShell` (shell `div`)
+- Added **`font-sfCompactRounded`** on the outer wrapper so body copy under the marketing shell uses **`"SF Compact Rounded", sans-serif`** instead of inheriting IBM Plex Mono.
+
+### 2. `MarketingHero` (`h1`)
+- Replaced **`font-ibmPlexMono`** with **`font-sfProDisplay`** so the headline uses **`"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif`**.
+
+### 3. `tailwind.config.js`
+- Extended `theme.fontFamily` with:
+  - **`sfCompactRounded`**
+  - **`sfProDisplay`**
+
+So the utilities match the exact stacks from your preview. `npm run build` completes successfully.
+
+**Note:** SF Compact Rounded and SF Pro Display are Apple system faces; on other platforms the stack falls back to `sans-serif` / system UI fonts. If you want those shapes everywhere, you’d need a licensed web font or a similar Google alternative.
+

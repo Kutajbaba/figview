@@ -1,0 +1,294 @@
+# CSS style changes for AddDesignFileGridSlot
+_Exported on 03/04/2026 at 19:47:24 GMT+1 from Cursor (3.0.9)_
+
+---
+
+**User**
+
+Apply these CSS style changes to the codebase. These changes were made in a browser preview and need to be persisted to the source files:
+
+
+--- Change 1 ---
+Element: <AddDesignFileGridSlot onOpen={[object Object]}>
+[CSS_CHANGE]: {
+  "property": "background-color",
+  "oldValue": "rgb(245, 245, 244)",
+  "newValue": "rgba(255, 255, 255, 1)",
+  "changeType": "style",
+  "selector": "<AddDesignFileGridSlot> div.flex",
+  "elementId": null,
+  "elementClasses": "flex h-full w-full max-w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 px-2 text-center text-[12px] font-semibold leading-snug text-stone-900 transition-colors hover:border-stone-400/80 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900",
+  "elementTagName": "div",
+  "elementAttributes": [],
+  "reactComponent": {
+    "name": "AddDesignFileGridSlot",
+    "props": {
+      "onOpen": {
+        "__type": "function",
+        "source": "() => setAddModalOpen(true)"
+      }
+    }
+  }
+}
+
+--- Change 2 ---
+Element: <AddDesignFileGridSlot onOpen={[object Object]}>
+[CSS_CHANGE]: {
+  "property": "color",
+  "oldValue": "rgb(28, 25, 23)",
+  "newValue": "rgba(28, 25, 23, 1)",
+  "changeType": "style",
+  "selector": "<AddDesignFileGridSlot> div.flex",
+  "elementId": null,
+  "elementClasses": "flex h-full w-full max-w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 px-2 text-center text-[12px] font-semibold leading-snug text-stone-900 transition-colors hover:border-stone-400/80 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900",
+  "elementTagName": "div",
+  "elementAttributes": [],
+  "reactComponent": {
+    "name": "AddDesignFileGridSlot",
+    "props": {
+      "onOpen": {
+        "__type": "function",
+        "source": "() => setAddModalOpen(true)"
+      }
+    }
+  }
+}
+
+CRITICAL - Element Identification:
+- Use the "selector" field to find the target element (contains CSS selector like "#id", ".class", or tag)
+- "elementPath" contains the DOM path (e.g., "html > body > div > ...") - use to understand element hierarchy
+- "elementHTML" shows the element's HTML structure for verification
+- "elementClasses" lists all CSS classes on the element - search for these in stylesheets
+- If "elementReactComponent" is provided, the component name (e.g., "Button", "Card") indicates where to look
+
+CRITICAL - Where to Make Changes:
+1. First check if the element uses utility classes (Tailwind, Bootstrap): modify the className/class attribute in JSX/TSX
+2. For CSS Modules (*.module.css): find the imported module and update the corresponding class
+3. For styled-components/emotion: find the styled() or css`` definition in the component file
+4. For global CSS/SCSS: locate the stylesheet imported by the component or in global styles
+5. For inline styles: update the style prop directly in the JSX/TSX file
+
+CRITICAL - Making the Actual Change:
+- "property" is the CSS property name (e.g., "color", "padding", "font-size")
+- "oldValue" is the current value - use this to locate the exact line to change
+- "newValue" is what it should be changed to
+- Preserve CSS units and format (e.g., if oldValue was "16px", keep pixel units unless converting to rem/em)
+
+For CSS Style Changes:
+1. Search for the element using "selector" or "elementClasses" to find relevant stylesheets
+2. Find the exact CSS rule containing "property: oldValue"
+3. Replace "oldValue" with "newValue"
+4. If no existing rule exists, add a new declaration to the appropriate CSS file or inline style
+5. For Tailwind: convert the CSS property/value to the appropriate utility class (e.g., "padding: 16px" → "p-4")
+6. Ensure specificity is maintained - don't accidentally override other rules
+
+---
+
+**Cursor**
+
+Locating `AddDesignFileGridSlot` and updating its styles to match the preview.
+
+
+
+Applying Change 1: replacing `bg-stone-100` (rgb(245, 245, 244)) with `bg-white`. Change 2 sets color to rgba(28, 25, 23, 1), which matches existing `text-stone-900` — no edit needed.
+
+
+
+Removing redundant `hover:bg-white` now that the default background is white.
+
+
+
+Here’s what was updated.
+
+### `AddDesignFileGridSlot.tsx`
+
+**Change 1 (background)**  
+Replaced `bg-stone-100` (`rgb(245, 245, 244)`) with `bg-white` so the default background matches `rgba(255, 255, 255, 1)`.
+
+**Hover**  
+Dropped `hover:bg-white` because it’s the same as the new default; `hover:border-stone-400/80` is unchanged.
+
+**Change 2 (color)**  
+No source change. The slot already uses `text-stone-900`, which is `#1c1917` / `rgb(28, 25, 23)` — the same as `rgba(28, 25, 23, 1)`. The preview diff was only a move from `rgb()` to `rgba()` in the computed style.
+
+---
+
+**User**
+
+Add a re-arrange interaction where the designer can drag the screens to re-arrange them and save the view. Also add a share button where a view only link will be generated for stakeholders who want to view the designs only.
+
+---
+
+**Cursor**
+
+Exploring the codebase to learn how screens, routing, and persistence work so we can implement drag-to-reorder with saved order and shareable view-only links.
+
+
+
+Implementing screen-order persistence, drag-and-drop reordering (with correct global order when filters apply), share-link encoding/parsing, viewer shell for shared links, and auto-load when a token exists.
+
+
+
+Updating `ScreenGrid` and `AppShell`, then `App.tsx` and `FigviewApp`.
+
+
+
+Wiring `App.tsx` and `FigviewApp`: updating `LoadFileFormCard` and `Setup` to accept an initial file URL.
+
+
+
+Refactoring screen-order initialization: remounting with a `key` and removing the effect to satisfy the linter.
+
+
+
+Here’s what was implemented.
+
+### Reorder + save
+- In **grid** view, each card has a **grip handle** (top-left). Drag a screen onto another to reorder.
+- Order is updated for the **whole file**: if you’ve filtered by page or search, only the visible frames move within the global list (other frames stay in place).
+- Layout is **saved automatically** to `localStorage` under `figview:screen-order:{fileKey}` and merged when new frames appear.
+- Helper copy in the toolbar: **“Drag handles to reorder · saved automatically”**.
+
+### Share (view-only link)
+- **Copy view-only link** copies a URL like:  
+  `?view=share&file={fileKey}&order={base64(JSON array of node ids)}`  
+  Order is included so stakeholders see the same sequence.
+- Openers get a **slim UI**: Designs + page list only; Dashboard, Account, Analytics, **New file**, reorder, and **Copy link** are hidden. Sidebar explains it’s a view-only link.
+- If the opener already has a **Figma token** saved, the file **loads automatically**; otherwise **Setup** opens with the file URL **pre-filled** (they still paste a token—Figma’s API requires it for private files).
+
+### Files touched
+- `src/lib/screenLayout.ts` — merge/sort order, localStorage, subset-aware global reorder.
+- `src/lib/shareLink.ts` — parse/build share URLs.
+- `src/components/ScreenCard.tsx` — grip handle + HTML5 DnD.
+- `src/components/ScreenGrid.tsx` — optional `onPersistScreenOrder` / `layoutReadOnly`.
+- `src/App.tsx` — ordered screens, share copy, share bootstrap, auto-load, `key` remount for layout state.
+- `src/components/AppShell.tsx` — `shareViewer` mode.
+- `src/components/Setup.tsx` / `LoadFileFormCard.tsx` — `initialFileUrl` for shared links.
+
+**Note:** Stakeholders still need a token with **read** access to the file (or a public file with a token that can call the API). The link only controls **layout and UI mode**, not Figma permissions.
+
+---
+
+**User**
+
+When dragging a screen to another position it should show the screen moving as the users pans around, with other screens shifting automatically to create space
+
+---
+
+**Cursor**
+
+Implementing pointer-based dragging with a floating preview and live grid reflow. Reviewing the current grid and card implementation.
+
+
+
+Implementing pointer-based dragging with a floating card preview and live grid reflow: moving logic into `ScreenGrid`, simplifying `ScreenCard` to expose a grip pointer handler, and adding a small placeholder helper.
+
+
+
+Implementing pointer-driven grid reorder in `ScreenGrid.tsx`.
+
+
+
+Adding auto-scroll while dragging, fixing the drag effect dependency, and removing the dimmed wrapper opacity.
+
+
+
+Syncing refs in `useLayoutEffect` and removing `dragRef` by using functional `setState` in move/end handlers so we always read the latest drag state.
+
+
+
+Optimizing the filter-cancel effect so it doesn't run on every pointer move:
+
+
+
+Here’s what changed:
+
+### Behavior
+- **Pointer-driven drag** (replacing HTML5 DnD): grabbing the handle tracks the pointer with a **floating copy** of the card (`fixed` position, thumbnail + titles, light border/shadow).
+- **Live layout**: The grid renders a **preview order** (`moveIndexInArray`) so other tiles **shift into the gap** while you move; the source slot shows a **dashed placeholder**.
+- **Scroll while dragging**: With the pointer near the **top or bottom** of the scrollable grid area, the list **auto-scrolls** so you can reorder across long grids (your “pan around” case).
+- **Hit testing**: Pointer position is mapped to the correct slot using each cell’s bounding rect (with a closest-cell fallback), so drops stay predictable.
+
+### Code
+- **`ScreenCard.tsx`**: Grip uses `onPointerDown` only (`touch-none`, `cursor-grab` / `grabbing` on `body` during drag); no native `draggable` / drop handlers.
+- **`ScreenGrid.tsx`**: `GridReorderPlaceholder`, `ScreenDragFloatPreview`, window `pointermove` / `up` / `cancel`, `previewFiltered` for the grid, `hitPreviewSlotIndex`, filter-change abort via `filterSigAtStart`.
+- **`screenLayout.ts`**: `moveIndexInArray` helper for preview order.
+- **`index.css`**: Light opacity transition on `.screen-grid-cell`.
+
+Persistence on drop is unchanged: release still runs `reorderGlobalFromFilteredMove` and saves to `localStorage`.
+
+---
+
+**User**
+
+The page is no design screens page is no longer scrollable, pls fix also add the drag and re-arrange effect to the single-layout view
+
+---
+
+**Cursor**
+
+Tracing layout and scroll containers to fix scrolling, then adding reorder to single view (filmstrip).
+
+
+
+Fixing scroll by adding `min-h-0` to flex scroll chains and ensuring body styles reset on unmount. Implementing filmstrip reorder using the same pointer-drag pattern with an `origin` discriminator.
+
+
+
+Implementing ScreenGrid and ScreenFilmstrip changes.
+
+
+
+Moving the drag float outside the grid-only branch so it appears in single view.
+
+
+
+Here’s what was wrong and what we changed.
+
+### Scroll (Designs browse + grid)
+1. **Designs browse** – The scrollable region was `flex-1 overflow-auto` **without** `min-h-0`, so the flex child wouldn’t shrink and scrolling could fail. It’s now `min-h-0 flex-1 overflow-y-auto overflow-x-hidden`.
+2. **App shell** – `DesignsBrowsePage` is wrapped in `flex min-h-0 min-w-0 flex-1 flex-col` so it gets a real height inside the flex layout.
+3. **Screen grid** – The main scroll area now uses `min-h-0 flex-1 overflow-y-auto overflow-x-hidden` (same flex-shrink issue as above).
+4. **Drag cleanup** – A mount-only effect clears `user-select`, `touch-action`, and `cursor` on `document.body` when `ScreenGrid` unmounts so a stuck drag doesn’t leave the page non-scrollable.
+
+### Single view reorder
+- Drag state now has an **`origin`: `'grid' | 'filmstrip'`**.
+- **Grid** preview / placeholders only apply when `origin === 'grid'` (so a half-finished strip drag doesn’t affect the grid).
+- **`filmstripScreens`** preview list drives the filmstrip while dragging from the strip.
+- **Hit-testing** uses `stripCellRefs` on each strip `li` (`data-strip-item`).
+- **Auto-scroll** while dragging uses the **filmstrip** `nav` when `origin === 'filmstrip'`, and the **grid** scroll container when `origin === 'grid'`.
+- **Floating preview** is rendered for **both** modes (moved out of the grid-only branch so it shows in single view).
+- **After drop** on the strip, selection jumps to **`overIndex`** so the same thumbnail stays highlighted in the new order.
+- **`ScreenFilmstrip`**: grip handle, placeholder slot while dragging, refs for layout measurement, optional `scrollRef`.
+
+Toolbar hint **“Drag handles to reorder”** now appears in **single** view as well when reordering is allowed.
+
+---
+
+**User**
+
+DOM Path: div.fixed in.et-0 z-50 flex item.-center ju.tify-center bg-.tone-900/50 p-4 backdrop-blur-.m > div.relative z-10 w-full max-w-md > div.mb-3 flex item.-center ju.tify-between gap-3
+Position: top=333px, left=364px, width=448px, height=40px
+React Component: AddDesignFileModal
+HTML Element: <div class="mb-3 flex items-center justify-between gap-3" data-cursor-element-id="cursor-el-3124">Load a Figma file</div> place inside the modal and change "Load a figma file" to "Add Figma file"
+
+---
+
+**Cursor**
+
+Moving the title and close control into the card by adding an optional `header` slot to `LoadFileFormCard`, and renaming the title to "Add Figma file".
+
+
+
+Here’s what changed:
+
+### `LoadFileFormCard.tsx`
+- Added an optional **`header`** prop (`ReactNode`).
+- For **`variant="modal"`**, that block is rendered **inside** the card, above the form, with `mb-6`, `border-b border-stone-100`, and `pb-4` so it reads as part of the panel.
+
+### `AddDesignFileModal.tsx`
+- Removed the standalone header row above the card.
+- Passes the title + close button through **`header`** on `LoadFileFormCard`.
+- Title copy is now **“Add Figma file”** (replacing “Load a Figma file”).
+- `id="add-design-file-title"` and `aria-labelledby` on the dialog are unchanged.
+
